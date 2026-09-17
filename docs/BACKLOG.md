@@ -43,11 +43,13 @@
 - [x] Validar totais de C170/C190 e registros de abertura/fechamento.
 - [x] Validar CST de C170/C190, duplicidade de C100, ordem de blocos e contadores 9990/9999 no TXT.
 - [x] Produzir relatório por severidade, origem e registro SPED afetado.
-- [ ] Implementar modo somente leitura e modo de correção com confirmação.
+- [x] Implementar modo somente leitura e plano de correção com confirmação.
+- [ ] Implementar executor Firebird transacional e recibo durável de correção.
 
 ## Fase 3 — Interface desktop (quarta)
 
 - [ ] Criar interface Windows em PySide6.
+- [x] Definir regras ACID e heurísticas de Nielsen para a interface.
 - [ ] Permitir escolher capturador, banco, período e arquivo de destino.
 - [ ] Exibir progresso, log, resumo e relatório de inconsistências.
 - [ ] Criar tela “Mapa de captura” com origem, transformação e destino SPED.
