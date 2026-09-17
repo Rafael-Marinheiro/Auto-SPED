@@ -5,17 +5,14 @@ from __future__ import annotations
 
 def main() -> int:
     try:
-        from PySide6.QtWidgets import QApplication, QMainWindow
+        from PySide6.QtWidgets import QApplication
     except ImportError as error:  # pragma: no cover - depende da instalação opcional
         raise SystemExit("Instale a interface com: pip install -e '.[desktop]'") from error
 
-    from .ui.firebird_selector import FirebirdClientSelector
+    from .ui.main_window import AutoSpedMainWindow
 
     app = QApplication([])
-    window = QMainWindow()
-    window.setWindowTitle("Auto-SPED — Configuração Firebird")
-    window.setCentralWidget(FirebirdClientSelector(window))
-    window.resize(760, 180)
+    window = AutoSpedMainWindow()
     window.show()
     return app.exec()
 

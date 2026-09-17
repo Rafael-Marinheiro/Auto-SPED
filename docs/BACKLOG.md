@@ -50,11 +50,11 @@
 
 ## Fase 3 — Interface desktop (quarta)
 
-- [ ] Criar interface Windows em PySide6.
+- [x] Criar primeira tela Windows em PySide6 para emissão Firebird.
 - [x] Definir regras ACID e heurísticas de Nielsen para a interface.
 - [x] Criar seletor desktop de cliente Firebird com detecção local e download
   sob demanda de kits oficiais.
-- [ ] Permitir escolher capturador, banco, período e arquivo de destino.
+- [x] Permitir escolher capturador, banco, período e arquivo de destino.
 - [ ] Exibir progresso, log, resumo e relatório de inconsistências.
 - [ ] Criar tela “Mapa de captura” com origem, transformação e destino SPED.
 - [ ] Registrar histórico local das emissões e correções aplicadas.
