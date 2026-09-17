@@ -51,6 +51,11 @@ class ValidationReport:
     def add(self, issue: ValidationIssue) -> None:
         self.issues.append(issue)
 
+    def add_issue(self, **kwargs: object) -> None:
+        """Atalho para validadores que constroem ocorrências por campo."""
+
+        self.add(ValidationIssue(**kwargs))  # type: ignore[arg-type]
+
     def to_dict(self) -> dict[str, object]:
         """Formato estável para interface, automações e auditoria local."""
 

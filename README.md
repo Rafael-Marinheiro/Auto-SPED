@@ -62,6 +62,14 @@ sped-capture-map --format table
 sped-capture-map --format json
 ```
 
+### Validação do arquivo gerado
+
+Além da pré-validação do banco, o TXT pode ser conferido antes de abrir o PVA:
+
+```bash
+sped-validate saida_sped.txt --report relatorio-sped.json
+```
+
 ## Segurança de dados
 
 Nunca versione bancos `.FDB`, arquivos SPED emitidos, XMLs, credenciais, logs

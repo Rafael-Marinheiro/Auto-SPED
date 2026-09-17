@@ -9,7 +9,7 @@ from typing import Optional, Sequence
 
 from .database import SpedDataExtractor
 from .providers import FirebirdSaoPedroProvider
-from .validation import validate_provider
+from .validation import validate_provider, validate_sped_file
 from .writer import SpedWriter
 
 
@@ -125,6 +125,23 @@ def main_capture_map(argv: Optional[Sequence[str]] = None) -> int:
     for mapping in mappings:
         print(f"{mapping.entity + '.' + mapping.fiscal_field:<18} {mapping.source:<72} {', '.join(mapping.sped_targets)}")
     return 0
+
+
+def main_validate_sped(argv: Optional[Sequence[str]] = None) -> int:
+    """Valida a estrutura de um TXT SPED já gerado."""
+
+    parser = argparse.ArgumentParser(description="Valida a estrutura de um arquivo TXT SPED.")
+    parser.add_argument("file", type=Path, help="Arquivo TXT SPED para validação.")
+    parser.add_argument("--report", type=Path, help="Destino opcional do relatório JSON.")
+    args = parser.parse_args(argv)
+    report = validate_sped_file(args.file)
+    print(f"Validação concluída: {report.error_count} erro(s), {report.warning_count} aviso(s).")
+    for issue in report.issues:
+        print(f"[{issue.severity.value.upper()}] {issue.source_ref} {issue.sped_record}.{issue.field}: {issue.message}")
+    if args.report:
+        args.report.write_text(json.dumps(report.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"Relatório gravado em {args.report.resolve()}")
+    return 0 if report.is_valid else 1
 
 
 if __name__ == "__main__":
