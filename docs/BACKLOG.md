@@ -40,7 +40,7 @@
 - [x] Validar unicidade de documentos.
 - [x] Validar totais de C170/C190 e registros de abertura/fechamento.
 - [x] Validar CST de C170/C190, duplicidade de C100, ordem de blocos e contadores 9990/9999 no TXT.
-- [ ] Produzir relatório por severidade, origem e registro SPED afetado.
+- [x] Produzir relatório por severidade, origem e registro SPED afetado.
 - [ ] Implementar modo somente leitura e modo de correção com confirmação.
 
 ## Fase 3 — Interface desktop (quarta)
@@ -61,6 +61,7 @@
 ## Fase 5 — Distribuição e qualidade (sexta)
 
 - [ ] Automatizar testes, lint e verificação de tipos no GitHub Actions.
+- [x] Automatizar a suíte de testes no GitHub Actions.
 - [ ] Empacotar aplicativo Windows e instalador.
 - [ ] Versionar alterações de layout e regras fiscais.
 - [ ] Publicar documentação de implantação, segurança e solução de problemas.
