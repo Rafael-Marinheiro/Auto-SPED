@@ -55,7 +55,7 @@
 - [x] Criar seletor desktop de cliente Firebird com detecção local e download
   sob demanda de kits oficiais.
 - [x] Permitir escolher capturador, banco, período e arquivo de destino.
-- [ ] Exibir progresso, log, resumo e relatório de inconsistências.
+- [x] Exibir progresso, log, resumo e relatório de inconsistências antes da emissão.
 - [ ] Criar tela “Mapa de captura” com origem, transformação e destino SPED.
 - [ ] Registrar histórico local das emissões e correções aplicadas.
 

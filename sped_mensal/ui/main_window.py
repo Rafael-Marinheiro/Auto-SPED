@@ -5,7 +5,10 @@ from __future__ import annotations
 from datetime import date
 from pathlib import Path
 
+from ..providers import FirebirdSaoPedroProvider
+from ..services import build_capture_summary
 from ..services.desktop_generation import GenerationRequest
+from ..validation import validate_provider
 from .firebird_selector import FirebirdClientSelector
 
 try:  # A camada desktop é opcional para uso via CLI.
@@ -21,8 +24,10 @@ try:  # A camada desktop é opcional para uso via CLI.
         QLineEdit,
         QMainWindow,
         QMessageBox,
+        QProgressBar,
         QPushButton,
         QTextEdit,
+        QTabWidget,
         QVBoxLayout,
         QWidget,
     )
@@ -34,7 +39,11 @@ class GenerationWorker(QObject):
     """Executa a emissão legada fora da thread visual."""
 
     status = Signal(str)
+    progress = Signal(int)
+    summary_ready = Signal(dict)
+    preflight_ready = Signal(dict)
     completed = Signal(str)
+    blocked = Signal(str)
     failed = Signal(str)
 
     def __init__(self, request: GenerationRequest) -> None:
@@ -44,7 +53,29 @@ class GenerationWorker(QObject):
     @Slot()
     def run(self) -> None:
         try:
-            self.status.emit("Iniciando emissão pelo fluxo homologado…")
+            self.progress.emit(5)
+            self.status.emit("Capturando resumo do período…")
+            provider = FirebirdSaoPedroProvider(
+                str(self.request.database_path),
+                str(self.request.client_library) if self.request.client_library else None,
+            )
+            summary = build_capture_summary(
+                provider, self.request.start_date_iso, self.request.end_date_iso
+            )
+            self.summary_ready.emit(summary.to_dict())
+            self.progress.emit(30)
+            self.status.emit("Executando pré-validação fiscal…")
+            report = validate_provider(
+                provider, self.request.start_date_iso, self.request.end_date_iso
+            )
+            self.preflight_ready.emit(report.to_dict())
+            self.progress.emit(55)
+            if not report.is_valid:
+                self.blocked.emit(
+                    "A emissão foi bloqueada: corrija os erros da pré-validação e tente novamente."
+                )
+                return
+            self.status.emit("Pré-validação aprovada. Gerando SPED pelo fluxo homologado…")
             from main_fast import main as generate_sped
 
             output = generate_sped(
@@ -54,6 +85,7 @@ class GenerationWorker(QObject):
                 self.request.output_path,
                 str(self.request.client_library) if self.request.client_library else None,
             )
+            self.progress.emit(100)
             self.completed.emit(str(output.resolve()))
         except Exception as error:  # A interface apresenta a causa ao operador.
             self.failed.emit(str(error))
@@ -86,6 +118,15 @@ class AutoSpedMainWindow(QMainWindow):
         self.log.setReadOnly(True)
         self.log.setMinimumHeight(140)
         self.log.setPlaceholderText("O status da emissão aparecerá aqui.")
+        self.progress = QProgressBar()
+        self.progress.setRange(0, 100)
+        self.progress.setValue(0)
+        self.summary = QTextEdit()
+        self.summary.setReadOnly(True)
+        self.summary.setPlaceholderText("O resumo da captura aparecerá antes da emissão.")
+        self.report = QTextEdit()
+        self.report.setReadOnly(True)
+        self.report.setPlaceholderText("A pré-validação e suas inconsistências aparecerão aqui.")
 
         content = QWidget()
         layout = QVBoxLayout(content)
@@ -95,8 +136,13 @@ class AutoSpedMainWindow(QMainWindow):
         client_layout.addWidget(self.firebird_selector)
         layout.addWidget(client_group)
         layout.addWidget(self.emit_button)
+        layout.addWidget(self.progress)
         layout.addWidget(QLabel("Log da emissão"))
         layout.addWidget(self.log)
+        tabs = QTabWidget()
+        tabs.addTab(self.summary, "Resumo")
+        tabs.addTab(self.report, "Pré-validação")
+        layout.addWidget(tabs)
         self.setCentralWidget(content)
         self.resize(820, 660)
 
@@ -153,6 +199,9 @@ class AutoSpedMainWindow(QMainWindow):
 
         self.emit_button.setEnabled(False)
         self.log.clear()
+        self.summary.clear()
+        self.report.clear()
+        self.progress.setValue(0)
         self._append(f"Banco: {request.database_path}")
         self._append(f"Período: {request.start_date:%d/%m/%Y} a {request.end_date:%d/%m/%Y}")
         self._append(f"Cliente Firebird: {request.client_library or 'detecção automática'}")
@@ -161,9 +210,14 @@ class AutoSpedMainWindow(QMainWindow):
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
         self._worker.status.connect(self._append)
+        self._worker.progress.connect(self.progress.setValue)
+        self._worker.summary_ready.connect(self._show_summary)
+        self._worker.preflight_ready.connect(self._show_preflight)
         self._worker.completed.connect(self._completed)
+        self._worker.blocked.connect(self._blocked)
         self._worker.failed.connect(self._failed)
         self._worker.completed.connect(self._thread.quit)
+        self._worker.blocked.connect(self._thread.quit)
         self._worker.failed.connect(self._thread.quit)
         self._thread.finished.connect(self._cleanup_worker)
         self._thread.start()
@@ -175,9 +229,50 @@ class AutoSpedMainWindow(QMainWindow):
         self._append(f"Concluído: {output}")
         QMessageBox.information(self, "SPED emitido", f"Arquivo gerado com sucesso:\n{output}")
 
+    def _blocked(self, message: str) -> None:
+        self._append(message)
+        QMessageBox.warning(self, "Emissão bloqueada", message)
+
     def _failed(self, message: str) -> None:
         self._append(f"Falha: {message}")
         QMessageBox.critical(self, "Emissão não concluída", message)
+
+    def _show_summary(self, summary: dict) -> None:
+        company = summary.get("company", {})
+        self.summary.setPlainText(
+            "\n".join(
+                (
+                    f"Empresa: {company.get('name', '')}",
+                    f"CNPJ: {company.get('cnpj', '')}",
+                    f"Período: {summary.get('start_date')} a {summary.get('end_date')}",
+                    f"Participantes: {summary.get('participant_count', 0)}",
+                    f"Produtos: {summary.get('product_count', 0)}",
+                    f"Documentos: {summary.get('document_count', 0)}",
+                    f"Total dos documentos: {summary.get('document_total', '0.00')}",
+                )
+            )
+        )
+
+    def _show_preflight(self, report: dict) -> None:
+        errors = report.get("error_count", 0)
+        warnings = report.get("warning_count", 0)
+        lines = [
+            f"Documentos analisados: {report.get('invoice_count', 0)}",
+            f"Erros: {errors}",
+            f"Avisos: {warnings}",
+            "",
+        ]
+        for issue in report.get("issues", []):
+            lines.append(
+                "[{severity}] {record}.{field} em {source}: {message}".format(
+                    severity=str(issue.get("severity", "")).upper(),
+                    record=issue.get("sped_record", ""),
+                    field=issue.get("field", ""),
+                    source=issue.get("source_ref", ""),
+                    message=issue.get("message", ""),
+                )
+            )
+        self.report.setPlainText("\n".join(lines))
 
     def _cleanup_worker(self) -> None:
         if self._worker:

@@ -24,3 +24,6 @@ auto-sped-desktop = "sped_mensal.desktop:main"
 
 [tool.setuptools.packages.find]
 include = ["sped_mensal*"]
+
+[tool.setuptools]
+py-modules = ["main_fast"]
