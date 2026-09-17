@@ -9,6 +9,7 @@ from ..providers import FirebirdSaoPedroProvider
 from ..services import build_capture_summary
 from ..services.desktop_generation import GenerationRequest
 from ..validation import validate_provider
+from .capture_map_dialog import CaptureMapDialog
 from .firebird_selector import FirebirdClientSelector
 
 try:  # A camada desktop é opcional para uso via CLI.
@@ -114,6 +115,8 @@ class AutoSpedMainWindow(QMainWindow):
         self.firebird_selector = FirebirdClientSelector()
         self.emit_button = QPushButton("Emitir SPED")
         self.emit_button.clicked.connect(self._emit)
+        self.map_button = QPushButton("Ver mapa de captura")
+        self.map_button.clicked.connect(self._show_capture_map)
         self.log = QTextEdit()
         self.log.setReadOnly(True)
         self.log.setMinimumHeight(140)
@@ -135,7 +138,10 @@ class AutoSpedMainWindow(QMainWindow):
         client_layout = QVBoxLayout(client_group)
         client_layout.addWidget(self.firebird_selector)
         layout.addWidget(client_group)
-        layout.addWidget(self.emit_button)
+        actions = QHBoxLayout()
+        actions.addWidget(self.emit_button)
+        actions.addWidget(self.map_button)
+        layout.addLayout(actions)
         layout.addWidget(self.progress)
         layout.addWidget(QLabel("Log da emissão"))
         layout.addWidget(self.log)
@@ -176,6 +182,9 @@ class AutoSpedMainWindow(QMainWindow):
         filename, _ = QFileDialog.getSaveFileName(self, "Salvar arquivo SPED", self.output.text(), "SPED (*.txt)")
         if filename:
             self.output.setText(filename)
+
+    def _show_capture_map(self) -> None:
+        CaptureMapDialog(self).exec()
 
     def _request(self) -> GenerationRequest:
         client = self.firebird_selector.selected_path()

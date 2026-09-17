@@ -56,7 +56,7 @@
   sob demanda de kits oficiais.
 - [x] Permitir escolher capturador, banco, período e arquivo de destino.
 - [x] Exibir progresso, log, resumo e relatório de inconsistências antes da emissão.
-- [ ] Criar tela “Mapa de captura” com origem, transformação e destino SPED.
+- [x] Criar tela “Mapa de captura” com origem, transformação e destino SPED.
 - [ ] Registrar histórico local das emissões e correções aplicadas.
 
 ## Fase 4 — Ecossistema de conectores (quinta)
