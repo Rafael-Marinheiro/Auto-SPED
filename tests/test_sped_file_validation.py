@@ -43,3 +43,26 @@ def test_sped_file_validation_accepts_a_minimal_consistent_file():
     report = validate_sped_lines(lines)
 
     assert report.is_valid
+
+
+def test_sped_file_validation_compares_c170_and_c190_per_document():
+    lines = [
+        "|0000|020|0|01082026|31082026|Empresa|123||RN|2402709|||A|1|",
+        "|0001|1|",
+        "|C001|0|",
+        "|C100|0|1|1|55|00|1|10|chave|01082026|01082026|10|0|0|0|10|0|0|0|0|0|0|0|0|0|0|0|0|0|",
+        "|C170|1|P||1|UN|10|0|0|000|1102||10|20|2|0|0|0|0|00|0|0|0|0|",
+        "|C190|000|1102|20|9|10|2|0|0|0|0||",
+        "|C990|5|",
+        "|9001|0|",
+        "|9900|0000|1|",
+        "|9990|4|",
+        "|9999|11|",
+    ]
+
+    report = validate_sped_lines(lines)
+
+    assert any(
+        issue.code == "c190.total.divergent" and issue.field == "VL_OPR"
+        for issue in report.issues
+    )
