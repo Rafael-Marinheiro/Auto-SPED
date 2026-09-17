@@ -7,15 +7,12 @@ from inspect import signature
 from typing import Any, Mapping, Sequence
 
 from ..providers.base import FiscalDataProvider
+from ..services.normalization import digits_only
 from .models import ValidationIssue, ValidationReport, ValidationSeverity
 
 
 def _text(value: Any) -> str:
     return "" if value is None else str(value).strip()
-
-
-def _digits(value: Any) -> str:
-    return "".join(char for char in _text(value) if char.isdigit())
 
 
 def _decimal(value: Any) -> Decimal:
@@ -85,10 +82,10 @@ def _validate_product(report: ValidationReport, product: Mapping[str, Any]) -> N
         _issue(report, code="product.code.required", message="Código do produto não informado.", sped_record="0200", field="COD_ITEM", source_ref=source_ref)
     if not _text(product.get("UNID_INV")):
         _issue(report, code="product.unit.required", message="Unidade de inventário não informada.", sped_record="0200", field="UNID_INV", source_ref=source_ref)
-    ncm = _digits(product.get("COD_NCM"))
+    ncm = digits_only(product.get("COD_NCM"))
     if ncm and len(ncm) != 8:
         _issue(report, code="product.ncm.invalid", message="NCM deve ter oito dígitos quando informado.", sped_record="0200", field="COD_NCM", source_ref=source_ref, value=product.get("COD_NCM"))
-    cest = _digits(product.get("CEST"))
+    cest = digits_only(product.get("CEST"))
     if cest and len(cest) != 7:
         _issue(report, code="product.cest.invalid", message="CEST deve ter sete dígitos quando informado.", sped_record="0200", field="CEST", source_ref=source_ref, value=product.get("CEST"))
 
@@ -121,10 +118,10 @@ def _validate_invoice_items(report: ValidationReport, provider: FiscalDataProvid
     total_items = Decimal("0")
     for item in items:
         source_ref = _source_ref(invoice, item.get("NUM_ITEM"))
-        cst = _digits(item.get("CST_ICMS"))
+        cst = digits_only(item.get("CST_ICMS"))
         if not cst or len(cst) > 3:
             _issue(report, code="item.cst.required", message="CST ICMS obrigatório ou inválido.", sped_record="C170", field="CST_ICMS", source_ref=source_ref, value=item.get("CST_ICMS"), suggestion="Informe o CST conforme a tributação do item.")
-        cfop = _digits(item.get("CFOP"))
+        cfop = digits_only(item.get("CFOP"))
         if len(cfop) != 4:
             _issue(report, code="item.cfop.invalid", message="CFOP deve conter quatro dígitos.", sped_record="C170", field="CFOP", source_ref=source_ref, value=item.get("CFOP"))
         if not _text(item.get("COD_ITEM")):

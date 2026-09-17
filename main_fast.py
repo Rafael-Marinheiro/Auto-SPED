@@ -7,6 +7,15 @@ Uso: python main_fast.py
 from pathlib import Path
 import argparse
 from sped_mensal.database import SpedDataExtractor
+from sped_mensal.services.normalization import (
+    digits_only,
+    normalize_cest,
+    normalize_cfop,
+    normalize_cst,
+    normalize_ncm,
+    normalize_tax_rate,
+    normalize_tipo_item,
+)
 from sped_mensal.writer import SpedWriter
 
 
@@ -48,37 +57,11 @@ def main(
     # NCM (8 dÃ­gitos ou branco); CEST (7 dÃ­gitos ou branco); UNID_INV trim;
     # ALIQ_ICMS com atÃ© 2 casas decimais.
     from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
-    def _digits(s) -> str:
-        t = "" if s is None else str(s)
-        return "".join(ch for ch in t if ch.isdigit())
-    def _norm_tipo_item(x: str) -> str:
-        d = _digits(x)
-        if len(d) > 2:
-            d = d[-2:]
-        return d.zfill(2) if d else ""
-    def _norm_ncm(x: str) -> str:
-        d = _digits(x)
-        if len(d) == 8 and d != "00000000":
-            return d
-        return ""
-    def _norm_cest(x: str) -> str:
-        d = _digits(x)
-        if len(d) == 7 and d != "0000000":
-            return d
-        return ""
-    def _norm_aliq(x) -> str:
-        s = "" if x is None else str(x).strip()
-        if s == "":
-            return ""
-        if "," in s and "." in s:
-            s = s.replace(".", "").replace(",", ".")
-        else:
-            s = s.replace(",", ".")
-        try:
-            d = Decimal(s)
-        except InvalidOperation:
-            return ""
-        return str(d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+    _digits = digits_only
+    _norm_tipo_item = normalize_tipo_item
+    _norm_ncm = normalize_ncm
+    _norm_cest = normalize_cest
+    _norm_aliq = normalize_tax_rate
     for p in products:
         try:
             if "DESCR_ITEM" in p:
@@ -221,19 +204,9 @@ def main(
 
     # Monkey patches para evitar consultas desnecessarias em NFC-e (65)
     # UtilitÃ¡rios de normalizaÃ§Ã£o (CFOP=4 dÃ­gitos, CST=3 dÃ­gitos)
-    def _digits_only(x: str) -> str:
-        s = "" if x is None else str(x)
-        return "".join(ch for ch in s if ch.isdigit())
-
-    def _norm_cfop(x: str) -> str:
-        d = _digits_only(x)
-        return d.zfill(4) if d else ""
-
-    def _norm_cst3(x: str) -> str:
-        d = _digits_only(x)
-        if len(d) > 3:
-            d = d[-3:]
-        return d.zfill(3) if d else ""
+    _digits_only = digits_only
+    _norm_cfop = normalize_cfop
+    _norm_cst3 = normalize_cst
 
     if hasattr(extractor, "get_invoice_items_by_ids"):
         _orig_get_items = extractor.get_invoice_items_by_ids

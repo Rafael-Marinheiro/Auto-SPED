@@ -27,6 +27,7 @@
 - [x] Parametrizar o fluxo mensal homologado por banco, período e saída.
 - [ ] Extrair, por partes, as normalizações homologadas de `main_fast.py` para
   serviços testáveis.
+- [x] Centralizar normalizações de CST, CFOP, NCM, CEST, tipo de item e alíquota.
 - [ ] Criar modelos tipados para empresa, documento, item e tributos.
 - [ ] Criar testes de paridade entre a emissão legado e a nova emissão para
   períodos anonimizados.
