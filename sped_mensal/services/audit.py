@@ -42,3 +42,11 @@ class JsonlAuditStore:
             output.write(json.dumps(payload, ensure_ascii=False, separators=(",", ":")) + "\n")
             output.flush()
             os.fsync(output.fileno())
+        # Histórico é conveniência de interface; a auditoria acima permanece a fonte
+        # de verdade e não deve falhar após uma correção já confirmada no Firebird.
+        try:
+            from .history import LocalHistoryStore
+
+            LocalHistoryStore().record_correction(receipt, plan)
+        except OSError:
+            pass

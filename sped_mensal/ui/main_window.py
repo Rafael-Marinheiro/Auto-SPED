@@ -8,9 +8,11 @@ from pathlib import Path
 from ..providers import FirebirdSaoPedroProvider
 from ..services import build_capture_summary
 from ..services.desktop_generation import GenerationRequest
+from ..services.history import LocalHistoryStore
 from ..validation import validate_provider
 from .capture_map_dialog import CaptureMapDialog
 from .firebird_selector import FirebirdClientSelector
+from .history_dialog import HistoryDialog
 
 try:  # A camada desktop é opcional para uso via CLI.
     from PySide6.QtCore import QDate, QObject, QThread, Signal, Slot
@@ -47,9 +49,17 @@ class GenerationWorker(QObject):
     blocked = Signal(str)
     failed = Signal(str)
 
-    def __init__(self, request: GenerationRequest) -> None:
+    def __init__(self, request: GenerationRequest, history_store: LocalHistoryStore | None = None) -> None:
         super().__init__()
         self.request = request
+        self.history_store = history_store or LocalHistoryStore()
+
+    def _record_history(self, status: str, target: str | Path = "", detail: str = "") -> None:
+        """Não deixa uma falha do histórico alterar o resultado da emissão."""
+        try:
+            self.history_store.record_emission(self.request, status, target, detail)
+        except OSError:
+            self.status.emit("Não foi possível registrar o histórico local desta operação.")
 
     @Slot()
     def run(self) -> None:
@@ -75,6 +85,7 @@ class GenerationWorker(QObject):
                 self.blocked.emit(
                     "A emissão foi bloqueada: corrija os erros da pré-validação e tente novamente."
                 )
+                self._record_history("bloqueada")
                 return
             self.status.emit("Pré-validação aprovada. Gerando SPED pelo fluxo homologado…")
             from main_fast import main as generate_sped
@@ -87,8 +98,10 @@ class GenerationWorker(QObject):
                 str(self.request.client_library) if self.request.client_library else None,
             )
             self.progress.emit(100)
+            self._record_history("concluída", output)
             self.completed.emit(str(output.resolve()))
         except Exception as error:  # A interface apresenta a causa ao operador.
+            self._record_history("falhou", detail=str(error))
             self.failed.emit(str(error))
 
 
@@ -100,6 +113,7 @@ class AutoSpedMainWindow(QMainWindow):
         self.setWindowTitle("Auto-SPED — Emissão")
         self._thread: QThread | None = None
         self._worker: GenerationWorker | None = None
+        self.history_store = LocalHistoryStore()
 
         today = date.today()
         self.provider = QComboBox()
@@ -117,6 +131,8 @@ class AutoSpedMainWindow(QMainWindow):
         self.emit_button.clicked.connect(self._emit)
         self.map_button = QPushButton("Ver mapa de captura")
         self.map_button.clicked.connect(self._show_capture_map)
+        self.history_button = QPushButton("Ver histórico")
+        self.history_button.clicked.connect(self._show_history)
         self.log = QTextEdit()
         self.log.setReadOnly(True)
         self.log.setMinimumHeight(140)
@@ -141,6 +157,7 @@ class AutoSpedMainWindow(QMainWindow):
         actions = QHBoxLayout()
         actions.addWidget(self.emit_button)
         actions.addWidget(self.map_button)
+        actions.addWidget(self.history_button)
         layout.addLayout(actions)
         layout.addWidget(self.progress)
         layout.addWidget(QLabel("Log da emissão"))
@@ -186,6 +203,9 @@ class AutoSpedMainWindow(QMainWindow):
     def _show_capture_map(self) -> None:
         CaptureMapDialog(self).exec()
 
+    def _show_history(self) -> None:
+        HistoryDialog(self, self.history_store).exec()
+
     def _request(self) -> GenerationRequest:
         client = self.firebird_selector.selected_path()
         return GenerationRequest(
@@ -215,7 +235,7 @@ class AutoSpedMainWindow(QMainWindow):
         self._append(f"Período: {request.start_date:%d/%m/%Y} a {request.end_date:%d/%m/%Y}")
         self._append(f"Cliente Firebird: {request.client_library or 'detecção automática'}")
         self._thread = QThread(self)
-        self._worker = GenerationWorker(request)
+        self._worker = GenerationWorker(request, self.history_store)
         self._worker.moveToThread(self._thread)
         self._thread.started.connect(self._worker.run)
         self._worker.status.connect(self._append)
