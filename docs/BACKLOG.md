@@ -23,6 +23,7 @@
 
 - [x] Criar o contrato `FiscalDataProvider`.
 - [x] Criar o primeiro capturador Firebird/ERP São Pedro sem alterar consultas.
+- [x] Expor mapa detalhado de captura (origem Firebird e destino SPED).
 - [x] Criar o caso de uso de geração independente da fonte.
 - [x] Parametrizar o fluxo mensal homologado por banco, período e saída.
 - [ ] Extrair, por partes, as normalizações homologadas de `main_fast.py` para

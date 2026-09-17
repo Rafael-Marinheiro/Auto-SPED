@@ -100,5 +100,32 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     return 0
 
 
+def main_capture_map(argv: Optional[Sequence[str]] = None) -> int:
+    """Exibe o mapa do capturador de referência sem abrir o banco."""
+
+    parser = argparse.ArgumentParser(description="Mostra o mapa de captura do conector Firebird São Pedro.")
+    parser.add_argument("--format", choices=("table", "json"), default="table")
+    args = parser.parse_args(argv)
+    mappings = FirebirdSaoPedroProvider("DADOS.FDB").describe_capture()
+    if args.format == "json":
+        print(json.dumps([
+            {
+                "entity": mapping.entity,
+                "fiscal_field": mapping.fiscal_field,
+                "source": mapping.source,
+                "sped_targets": mapping.sped_targets,
+                "note": mapping.note,
+            }
+            for mapping in mappings
+        ], ensure_ascii=False, indent=2))
+        return 0
+
+    print(f"{'Dado fiscal':<18} {'Origem':<72} Destino SPED")
+    print("-" * 120)
+    for mapping in mappings:
+        print(f"{mapping.entity + '.' + mapping.fiscal_field:<18} {mapping.source:<72} {', '.join(mapping.sped_targets)}")
+    return 0
+
+
 if __name__ == "__main__":
     raise SystemExit(main())

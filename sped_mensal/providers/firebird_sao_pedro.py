@@ -25,16 +25,26 @@ class FirebirdSaoPedroProvider(FiscalDataProvider):
 
     def describe_capture(self) -> Sequence[CaptureMapping]:
         return (
-            CaptureMapping("empresa", "identificação", "EMPRESA", ("0000", "0005")),
+            CaptureMapping("empresa", "NOME", "EMPRESA.RAZAO", ("0000.NOME",)),
+            CaptureMapping("empresa", "CNPJ", "EMPRESA.CNPJ", ("0000.CNPJ",)),
+            CaptureMapping("empresa", "IE", "EMPRESA.IE", ("0000.IE",)),
+            CaptureMapping("empresa", "COD_MUN", "EMPRESA.ID_CIDADE", ("0000.COD_MUN",)),
+            CaptureMapping("empresa", "endereço", "EMPRESA.ENDERECO, NUMERO, BAIRRO", ("0005",)),
             CaptureMapping("contador", "dados cadastrais", "CONTADOR", ("0100",)),
             CaptureMapping("participante", "cadastro", "PESSOA", ("0150",)),
             CaptureMapping("produto", "cadastro e tributação", "PRODUTO", ("0190", "0200")),
-            CaptureMapping("NF-e", "cabeçalho", "NFE_MASTER", ("C100",)),
-            CaptureMapping("NFC-e", "cabeçalho", "NFCE_MASTER", ("C100", "C190")),
-            CaptureMapping("compra", "cabeçalho", "COMPRA", ("C100",)),
-            CaptureMapping("item NF-e", "tributação", "NFE_DETALHE", ("C170", "C190")),
-            CaptureMapping("item NFC-e", "tributação", "NFCE_DETALHE", ("C190",)),
-            CaptureMapping("item compra", "tributação", "COMPRA_ITENS", ("C170", "C190")),
+            CaptureMapping("NF-e", "NUM_DOC", "NFE_MASTER.NUMERO", ("C100.NUM_DOC",)),
+            CaptureMapping("NF-e", "chave", "NFE_MASTER.CHAVE", ("C100.CHV_NFE",)),
+            CaptureMapping("NF-e", "valores", "NFE_MASTER.TOTAL, BASEICMS, TOTALICMS", ("C100",)),
+            CaptureMapping("NFC-e", "NUM_DOC", "NFCE_MASTER.NUMERO", ("C100.NUM_DOC",)),
+            CaptureMapping("NFC-e", "valores", "NFCE_MASTER.TOTAL, BASEICMS, TOTALICMS", ("C100", "C190")),
+            CaptureMapping("compra", "NUM_DOC", "COMPRA.NR_NOTA", ("C100.NUM_DOC",)),
+            CaptureMapping("compra", "datas e totais", "COMPRA.DTEMISSAO, DTENTRADA, TOTAL", ("C100",)),
+            CaptureMapping("item NF-e", "produto e valor", "NFE_DETALHE.ID_PRODUTO, QTD, TOTAL", ("C170.COD_ITEM", "C170.QTD", "C170.VL_ITEM")),
+            CaptureMapping("item NF-e", "tributação", "NFE_DETALHE.CST, CFOP, BASE_ICMS, ALIQ_ICMS, VALOR_ICMS", ("C170.CST_ICMS", "C170.CFOP", "C170", "C190")),
+            CaptureMapping("item NFC-e", "tributação", "NFCE_DETALHE.CST, CFOP, BASE_ICMS, ALIQ_ICMS, VALOR_ICMS", ("C190",)),
+            CaptureMapping("item compra", "produto e valor", "COMPRA_ITENS.FK_PRODUTO, QTD, TOTAL_COMPRA", ("C170.COD_ITEM", "C170.QTD", "C170.VL_ITEM")),
+            CaptureMapping("item compra", "tributação", "COMPRA_ITENS.CST_ICM, CFOP, BASE_ICMS, ALIQ_ICMS, VL_ICMS", ("C170.CST_ICMS", "C170.CFOP", "C170", "C190")),
         )
 
     def get_company_info(self) -> dict[str, Any]:

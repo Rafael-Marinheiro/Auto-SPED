@@ -52,6 +52,16 @@ TXT. O relatório aponta a tabela/origem e o registro SPED impactado.
 sped-generate --database DADOS.FDB --start-date 2026-08-01 --end-date 2026-08-31 --validate-only --validation-report relatorio.json
 ```
 
+### Mapa de captura
+
+O capturador de referência pode ser consultado sem abrir o banco. Isso mostra
+quais tabelas/campos abastecem cada registro do SPED:
+
+```bash
+sped-capture-map --format table
+sped-capture-map --format json
+```
+
 ## Segurança de dados
 
 Nunca versione bancos `.FDB`, arquivos SPED emitidos, XMLs, credenciais, logs

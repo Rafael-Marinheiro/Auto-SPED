@@ -9,6 +9,7 @@ def test_firebird_provider_describes_fiscal_capture():
     assert provider.provider_id == "firebird-sao-pedro"
     assert all(isinstance(mapping, CaptureMapping) for mapping in mappings)
     assert any(
-        mapping.source == "COMPRA_ITENS" and "C170" in mapping.sped_targets
+        mapping.source.startswith("COMPRA_ITENS.")
+        and "C170.CST_ICMS" in mapping.sped_targets
         for mapping in mappings
     )
