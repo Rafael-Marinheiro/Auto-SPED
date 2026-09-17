@@ -2,5 +2,6 @@
 
 from .base import CaptureMapping, FiscalDataProvider
 from .firebird_sao_pedro import FirebirdSaoPedroProvider
+from .firebird_corrections import FirebirdCompraCorrectionExecutor
 
-__all__ = ["CaptureMapping", "FiscalDataProvider", "FirebirdSaoPedroProvider"]
+__all__ = ["CaptureMapping", "FiscalDataProvider", "FirebirdSaoPedroProvider", "FirebirdCompraCorrectionExecutor"]

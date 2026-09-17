@@ -44,7 +44,7 @@
 - [x] Validar CST de C170/C190, duplicidade de C100, ordem de blocos e contadores 9990/9999 no TXT.
 - [x] Produzir relatório por severidade, origem e registro SPED afetado.
 - [x] Implementar modo somente leitura e plano de correção com confirmação.
-- [ ] Implementar executor Firebird transacional e recibo durável de correção.
+- [x] Implementar executor Firebird transacional restrito e recibo durável de correção.
 
 ## Fase 3 — Interface desktop (quarta)
 

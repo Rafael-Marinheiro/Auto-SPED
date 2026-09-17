@@ -7,6 +7,7 @@ from .corrections import (
     CorrectionProposal,
     CorrectionReceipt,
     apply_confirmed_plan,
+    apply_confirmed_plan_with_audit,
 )
 from .generation import GenerationResult, generate_sped
 from .normalization import (
@@ -21,7 +22,7 @@ from .normalization import (
 
 __all__ = [
     "CaptureSummary", "build_capture_summary", "CorrectionConfirmationError",
-    "CorrectionPlan", "CorrectionProposal", "CorrectionReceipt", "apply_confirmed_plan",
+    "CorrectionPlan", "CorrectionProposal", "CorrectionReceipt", "apply_confirmed_plan", "apply_confirmed_plan_with_audit",
     "GenerationResult", "generate_sped", "digits_only", "normalize_cest",
     "normalize_cfop", "normalize_cst", "normalize_ncm", "normalize_tax_rate",
     "normalize_tipo_item",

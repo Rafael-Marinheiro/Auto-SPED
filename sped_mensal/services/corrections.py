@@ -7,6 +7,8 @@ from datetime import datetime, timezone
 from hashlib import sha256
 from typing import Protocol
 
+from .audit import JsonlAuditStore
+
 
 @dataclass(frozen=True)
 class CorrectionProposal:
@@ -72,3 +74,16 @@ def apply_confirmed_plan(executor: CorrectionExecutor, plan: CorrectionPlan, con
         transaction.rollback()
         raise
     return CorrectionReceipt(transaction_id, plan.confirmation_token, len(plan.proposals), datetime.now(timezone.utc))
+
+
+def apply_confirmed_plan_with_audit(
+    executor: CorrectionExecutor,
+    plan: CorrectionPlan,
+    confirmation_token: str,
+    audit_store: JsonlAuditStore,
+) -> CorrectionReceipt:
+    """Executa e persiste o recibo; falha de auditoria exige reconciliação."""
+
+    receipt = apply_confirmed_plan(executor, plan, confirmation_token)
+    audit_store.append(receipt, plan)
+    return receipt
