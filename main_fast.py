@@ -34,6 +34,7 @@ def main(
     start_date: str = "2025-12-01",
     end_date: str = "2025-12-31",
     output_path: str | Path = "saida_sped_out_2025-12.txt",
+    client_library: str | None = None,
 ) -> Path:
     """Emite o SPED pelo fluxo homologado do ERP São Pedro.
 
@@ -43,7 +44,7 @@ def main(
 
     _log(f"[FAST] Iniciando geracao SPED (cwd={Path.cwd()})")
 
-    extractor = SpedDataExtractor(db_path)
+    extractor = SpedDataExtractor(db_path, client_library)
 
     # Carrega dados base
     company_info = extractor.get_company_info()
@@ -1030,8 +1031,12 @@ if __name__ == "__main__":
     parser.add_argument("--start-date", default="2025-12-01", help="Início do período (YYYY-MM-DD).")
     parser.add_argument("--end-date", default="2025-12-31", help="Fim do período (YYYY-MM-DD).")
     parser.add_argument("--output", default="saida_sped_out_2025-12.txt", help="Arquivo TXT de saída.")
+    parser.add_argument(
+        "--fbclient",
+        help="Caminho do fbclient.dll compatível com o Firebird e com este Python.",
+    )
     args = parser.parse_args()
-    main(args.database, args.start_date, args.end_date, args.output)
+    main(args.database, args.start_date, args.end_date, args.output, args.fbclient)
 
 
 

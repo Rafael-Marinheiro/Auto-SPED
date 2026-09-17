@@ -19,9 +19,10 @@ class FirebirdSaoPedroProvider(FiscalDataProvider):
     provider_id = "firebird-sao-pedro"
     display_name = "Firebird — ERP São Pedro"
 
-    def __init__(self, database_path: str) -> None:
+    def __init__(self, database_path: str, client_library: str | None = None) -> None:
         self.database_path = database_path
-        self._extractor = SpedDataExtractor(database_path)
+        self.client_library = client_library
+        self._extractor = SpedDataExtractor(database_path, client_library)
 
     def describe_capture(self) -> Sequence[CaptureMapping]:
         return (

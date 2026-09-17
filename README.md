@@ -19,6 +19,9 @@ sem edição do código:
 python main_fast.py --database DADOS.FDB --start-date 2026-08-01 --end-date 2026-08-31 --output saida_sped_out_2026-08.txt
 ```
 
+Quando houver mais de uma versão do Firebird instalada, passe a DLL cliente
+correta com `--fbclient`. Consulte a [configuração do Firebird](docs/FIREBIRD_SETUP.md).
+
 ## Arquitetura
 
 ```text
@@ -49,7 +52,7 @@ Antes de emitir, é possível conferir os dados sem alterar o banco nem gerar o
 TXT. O relatório aponta a tabela/origem e o registro SPED impactado.
 
 ```bash
-sped-generate --database DADOS.FDB --start-date 2026-08-01 --end-date 2026-08-31 --validate-only --validation-report relatorio.json
+sped-generate --database DADOS.FDB --start-date 2026-08-01 --end-date 2026-08-31 --fbclient "C:\Program Files\Firebird\Firebird_2_5\bin\fbclient.dll" --validate-only --validation-report relatorio.json
 ```
 
 ### Mapa de captura

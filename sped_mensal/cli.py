@@ -43,6 +43,11 @@ def build_parser() -> argparse.ArgumentParser:
         help="Caminho do arquivo de saída (default: saida_sped.txt).",
     )
     parser.add_argument(
+        "--fbclient",
+        type=Path,
+        help="Caminho do fbclient.dll compatível com o Firebird e com este Python.",
+    )
+    parser.add_argument(
         "--validate-only",
         action="store_true",
         help="Valida os dados fiscais sem gerar ou alterar arquivos SPED.",
@@ -60,7 +65,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parser.parse_args(argv)
 
     if args.validate_only or args.validation_report:
-        provider = FirebirdSaoPedroProvider(str(args.database))
+        provider = FirebirdSaoPedroProvider(
+            str(args.database), str(args.fbclient) if args.fbclient else None
+        )
         report = validate_provider(provider, args.start_date, args.end_date)
         print(
             f"Pré-validação concluída: {report.error_count} erro(s), "
@@ -82,7 +89,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             return 0 if report.is_valid else 1
 
     # Extrai dados do banco
-    extractor = SpedDataExtractor(str(args.database))
+    extractor = SpedDataExtractor(
+        str(args.database), str(args.fbclient) if args.fbclient else None
+    )
     company_info = extractor.get_company_info()
     accountant_info = extractor.get_accountant_info()
     participants = extractor.get_participants()
@@ -154,9 +163,18 @@ def main_capture_summary(argv: Optional[Sequence[str]] = None) -> int:
     parser.add_argument("--end-date", required=True, help="Fim do período (YYYY-MM-DD).")
     parser.add_argument("--format", choices=("table", "json"), default="table")
     parser.add_argument("--output", type=Path, help="Arquivo JSON opcional para salvar a prévia.")
+    parser.add_argument(
+        "--fbclient",
+        type=Path,
+        help="Caminho do fbclient.dll compatível com o Firebird e com este Python.",
+    )
     args = parser.parse_args(argv)
     summary = build_capture_summary(
-        FirebirdSaoPedroProvider(str(args.database)), args.start_date, args.end_date
+        FirebirdSaoPedroProvider(
+            str(args.database), str(args.fbclient) if args.fbclient else None
+        ),
+        args.start_date,
+        args.end_date,
     )
     payload = summary.to_dict()
     if args.output:

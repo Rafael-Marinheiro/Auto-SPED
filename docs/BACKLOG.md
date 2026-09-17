@@ -26,6 +26,8 @@
 - [x] Expor mapa detalhado de captura (origem Firebird e destino SPED).
 - [x] Criar o caso de uso de geração independente da fonte.
 - [x] Parametrizar o fluxo mensal homologado por banco, período e saída.
+- [x] Permitir selecionar o cliente Firebird (`fbclient`) por emissão e documentar
+  compatibilidade de versão e arquitetura.
 - [ ] Extrair, por partes, as normalizações homologadas de `main_fast.py` para
   serviços testáveis.
 - [x] Centralizar normalizações de CST, CFOP, NCM, CEST, tipo de item e alíquota.

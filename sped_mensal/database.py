@@ -12,22 +12,51 @@ import fdb
 class DatabaseConnection:
     """Gerencia a conexão com o banco de dados Firebird."""
 
-    def __init__(self, db_path: str, user: str = "SYSDBA", password: str = "masterkey"):
+    def __init__(
+        self,
+        db_path: str,
+        user: str = "SYSDBA",
+        password: str = "masterkey",
+        client_library: str | None = None,
+    ):
         self.db_path = db_path
         self.user = user
         self.password = password
+        self.client_library = client_library
         self.connection: Optional[fdb.Connection] = None
 
     _client_loaded = False
+    _loaded_client_path: str | None = None
+
+    @staticmethod
+    def _canonical_client_path(path: str) -> str:
+        """Normaliza um caminho para comparar bibliotecas já carregadas."""
+        return os.path.normcase(os.path.abspath(os.path.expanduser(path)))
 
     def _ensure_client_loaded(self) -> None:
         """Carrega a biblioteca cliente do Firebird conforme o ambiente."""
         if DatabaseConnection._client_loaded:
+            if self.client_library:
+                requested_path = self._canonical_client_path(self.client_library)
+                loaded_path = DatabaseConnection._loaded_client_path
+                if loaded_path and requested_path != loaded_path:
+                    raise RuntimeError(
+                        "O fbclient já carregado neste processo é "
+                        f"'{loaded_path}'. Para usar '{requested_path}', encerre e "
+                        "execute o aplicativo novamente."
+                    )
             return
 
         env_path = os.environ.get("FBCLIENT_PATH")
         candidates = []
-        if env_path:
+        if self.client_library:
+            explicit_path = Path(self.client_library)
+            if not explicit_path.is_file():
+                raise FileNotFoundError(
+                    f"Biblioteca cliente Firebird não encontrada: {explicit_path}"
+                )
+            candidates.append(str(explicit_path))
+        elif env_path:
             candidates.append(env_path)
 
         if os.name == "nt":
@@ -54,8 +83,17 @@ class DatabaseConnection:
                 try:
                     fdb.load_api(str(candidate_path))
                     DatabaseConnection._client_loaded = True
+                    DatabaseConnection._loaded_client_path = self._canonical_client_path(
+                        str(candidate_path)
+                    )
                     return
-                except Exception:
+                except Exception as error:
+                    if self.client_library:
+                        raise FileNotFoundError(
+                            "Não foi possível carregar a biblioteca cliente Firebird "
+                            f"informada: {candidate_path}. Verifique a versão e a "
+                            f"arquitetura (32/64 bits). Detalhe: {error}"
+                        ) from error
                     continue
 
         # Última tentativa: deixa o driver procurar pelo nome padrão.
@@ -68,6 +106,7 @@ class DatabaseConnection:
                 "Defina a variável de ambiente FBCLIENT_PATH apontando para o fbclient."
             )
         DatabaseConnection._client_loaded = True
+        DatabaseConnection._loaded_client_path = default_name
 
     def connect(self) -> None:
         """Estabelece conexão com o banco de dados."""
@@ -84,7 +123,7 @@ class DatabaseConnection:
                 password=self.password,
                 charset="WIN1252"
             )
-        except (fdb.DatabaseError, FileNotFoundError) as e:
+        except (fdb.DatabaseError, FileNotFoundError, RuntimeError) as e:
             raise ConnectionError(f"Erro ao conectar ao banco de dados: {e}")
 
     def disconnect(self) -> None:
@@ -118,8 +157,8 @@ class DatabaseConnection:
 class SpedDataExtractor:
     """Extrai dados do banco para geração do SPED."""
 
-    def __init__(self, db_path: str):
-        self.db = DatabaseConnection(db_path)
+    def __init__(self, db_path: str, client_library: str | None = None):
+        self.db = DatabaseConnection(db_path, client_library=client_library)
 
     def get_company_info(self) -> Dict[str, str]:
         """Obtém informações da empresa."""

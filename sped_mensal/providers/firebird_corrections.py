@@ -73,12 +73,13 @@ class FirebirdCompraTransaction(CorrectionTransaction):
 class FirebirdCompraCorrectionExecutor:
     """Abre uma transação Firebird para um plano confirmado de compras."""
 
-    def __init__(self, database_path: str) -> None:
+    def __init__(self, database_path: str, client_library: str | None = None) -> None:
         self.database_path = database_path
+        self.client_library = client_library
 
     def begin(self, source_id: str) -> FirebirdCompraTransaction:
         if source_id != "firebird-sao-pedro":
             raise ValueError(f"Fonte não suportada pelo executor Firebird: {source_id}.")
-        database = DatabaseConnection(self.database_path)
+        database = DatabaseConnection(self.database_path, client_library=self.client_library)
         database.connect()
         return FirebirdCompraTransaction(database)
