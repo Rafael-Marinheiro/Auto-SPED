@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+saida_sped.txt
+
+# Dados fiscais e arquivos locais: nunca publicar no repositório.
+*.FDB
+*.FDB.*
+saida_sped_out_*.txt
+SPED *.txt
+execucao*.log
+*.pdf

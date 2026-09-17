@@ -1,0 +1,191 @@
+{
+  "registers": [
+    {
+      "code": "0000",
+      "data": {
+        "COD_VER": "015",
+        "COD_FIN": "0",
+        "DT_INI": "20240101",
+        "DT_FIN": "20240131",
+        "NOME": "EMPRESA DE EXEMPLO LTDA",
+        "CNPJ": "12345678000195",
+        "CPF": "",
+        "UF": "SP",
+        "IE": "110042490114",
+        "COD_MUN": "3550308",
+        "IM": "1234567",
+        "SUFRAMA": "",
+        "IND_PERFIL": "A",
+        "IND_ATIV": "1"
+      }
+    },
+    {
+      "code": "0001",
+      "data": {
+        "IND_MOV": "0"
+      }
+    },
+    {
+      "code": "0005",
+      "data": {
+        "FANTASIA": "EMPRESA DE EXEMPLO",
+        "CEP": "04547000",
+        "END": "Avenida das Nações",
+        "NUM": "1000",
+        "COMPL": "Conjunto 101",
+        "BAIRRO": "Brooklin",
+        "FONE": "1133334444",
+        "FAX": "1133335555",
+        "EMAIL": "contato@empresaexemplo.com"
+      }
+    },
+    {
+      "code": "0100",
+      "data": {
+        "NOME": "CARLOS CONTADOR",
+        "CPF": "12345678901",
+        "CRC": "1SP000000/O-0",
+        "CNPJ": "",
+        "CEP": "04547000",
+        "END": "Rua dos Contadores",
+        "NUM": "200",
+        "COMPL": "Sala 305",
+        "BAIRRO": "Brooklin",
+        "FONE": "1133336666",
+        "FAX": "",
+        "EMAIL": "carlos@contador.com",
+        "COD_MUN": "3550308"
+      }
+    },
+    {
+      "code": "0150",
+      "data": {
+        "COD_PART": "FORNEC001",
+        "NOME": "Fornecedor Exemplo Ltda",
+        "COD_PAIS": "1058",
+        "CNPJ": "11222333000144",
+        "CPF": "",
+        "IE": "123456789012",
+        "COD_MUN": "3550308",
+        "SUFRAMA": "",
+        "END": "Rua do Fornecedor",
+        "NUM": "50",
+        "COMPL": "",
+        "BAIRRO": "Centro"
+      }
+    },
+    {
+      "code": "0190",
+      "data": {
+        "UNID": "UN",
+        "DESCR": "UNIDADE"
+      }
+    },
+    {
+      "code": "0200",
+      "data": {
+        "COD_ITEM": "PROD001",
+        "DESCR_ITEM": "Produto de Exemplo",
+        "COD_BARRA": "",
+        "COD_ANT_ITEM": "",
+        "UNID_INV": "UN",
+        "TIPO_ITEM": "00",
+        "COD_NCM": "12345678",
+        "EX_IPI": "",
+        "COD_GEN": "01",
+        "COD_LST": "",
+        "ALIQ_ICMS": "18.00",
+        "CEST": "1234567"
+      }
+    },
+    {
+      "code": "C001",
+      "data": {
+        "IND_MOV": "0"
+      }
+    },
+    {
+      "code": "C100",
+      "data": {
+        "IND_OPER": "0",
+        "IND_EMIT": "1",
+        "COD_PART": "FORNEC001",
+        "COD_MOD": "55",
+        "COD_SIT": "00",
+        "SER": "1",
+        "NUM_DOC": "12345",
+        "CHV_NFE": "35140112345678000195550010000012341000012345",
+        "DT_DOC": "20240110",
+        "DT_E_S": "20240110",
+        "VL_DOC": "1500.00",
+        "IND_PGTO": "0",
+        "VL_DESC": "0.00",
+        "VL_ABAT_NT": "0.00",
+        "VL_MERC": "1500.00",
+        "IND_FRT": "0",
+        "VL_FRT": "0.00",
+        "VL_SEG": "0.00",
+        "VL_OUT_DA": "0.00",
+        "VL_BC_ICMS": "1500.00",
+        "VL_ICMS": "270.00",
+        "VL_BC_ICMS_ST": "0.00",
+        "VL_ICMS_ST": "0.00",
+        "VL_IPI": "0.00",
+        "VL_PIS": "0.00",
+        "VL_COFINS": "0.00",
+        "VL_PIS_ST": "0.00",
+        "VL_COFINS_ST": "0.00"
+      }
+    },
+    {
+      "code": "C170",
+      "data": {
+        "NUM_ITEM": "1",
+        "COD_ITEM": "PROD001",
+        "DESCR_COMPL": "",
+        "QTD": "10.000",
+        "UNID": "UN",
+        "VL_ITEM": "1500.00",
+        "VL_DESC": "0.00",
+        "IND_MOV": "0",
+        "CST_ICMS": "000",
+        "CFOP": "1102",
+        "COD_NAT": "",
+        "VL_BC_ICMS": "1500.00",
+        "ALIQ_ICMS": "18.00",
+        "VL_ICMS": "270.00",
+        "VL_BC_ICMS_ST": "0.00",
+        "ALIQ_ST": "0.00",
+        "VL_ICMS_ST": "0.00",
+        "IND_APUR": "0",
+        "CST_IPI": "00",
+        "COD_ENQ": "",
+        "VL_IPI": "0.00",
+        "CST_PIS": "01",
+        "VL_BC_PIS": "1500.00",
+        "ALIQ_PIS": "1.65",
+        "VL_PIS": "24.75",
+        "CST_COFINS": "01",
+        "VL_BC_COFINS": "1500.00",
+        "ALIQ_COFINS": "7.60",
+        "VL_COFINS": "114.00",
+        "COD_CTA": "1.01.01.01"
+      }
+    },
+    {
+      "code": "C190",
+      "data": {
+        "CST_ICMS": "000",
+        "CFOP": "1102",
+        "ALIQ_ICMS": "18.00",
+        "VL_OPR": "1500.00",
+        "VL_BC_ICMS": "1500.00",
+        "VL_ICMS": "270.00",
+        "VL_BC_ICMS_ST": "0.00",
+        "VL_ICMS_ST": "0.00",
+        "VL_RED_BC": "0.00",
+        "VL_IPI": "0.00"
+      }
+    }
+  ]
+}

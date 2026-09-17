@@ -1,0 +1,59 @@
+# Auto-SPED
+
+Gerador de **EFD ICMS/IPI** com arquitetura de capturadores reutilizáveis. O
+projeto transforma dados de um ERP, banco, API ou arquivo em registros fiscais
+padronizados, valida a consistência e gera o TXT para importação no PVA.
+
+## Status
+
+O capturador Firebird do ERP São Pedro está em transição segura: a emissão
+mensal homologada por `main_fast.py` continua disponível para o `DADOS.FDB`.
+A nova camada não a substitui até haver testes de paridade e validação no PVA.
+
+### Emissão mensal homologada
+
+O fluxo já utilizado no ERP agora recebe o período e o destino por parâmetros,
+sem edição do código:
+
+```bash
+python main_fast.py --database DADOS.FDB --start-date 2026-08-01 --end-date 2026-08-31 --output saida_sped_out_2026-08.txt
+```
+
+## Arquitetura
+
+```text
+Fonte de dados → Capturador → Regras fiscais e validação → SPED TXT
+```
+
+O contrato `FiscalDataProvider` permite criar novos conectores sem alterar o
+escritor do SPED. O primeiro exemplo é `FirebirdSaoPedroProvider`, que documenta
+a captura das tabelas do ERP atual.
+
+- [Arquitetura e mapa de captura](docs/ARCHITECTURE.md)
+- [Backlog priorizado](docs/BACKLOG.md)
+
+## Desenvolvimento
+
+Requer Python 3.10 ou superior.
+
+```bash
+python -m venv .venv
+.venv\\Scripts\\activate
+pip install -e .
+python -m pytest -q
+```
+
+### Pré-validação
+
+Antes de emitir, é possível conferir os dados sem alterar o banco nem gerar o
+TXT. O relatório aponta a tabela/origem e o registro SPED impactado.
+
+```bash
+sped-generate --database DADOS.FDB --start-date 2026-08-01 --end-date 2026-08-31 --validate-only --validation-report relatorio.json
+```
+
+## Segurança de dados
+
+Nunca versione bancos `.FDB`, arquivos SPED emitidos, XMLs, credenciais, logs
+ou relatórios de clientes. Use apenas bancos e exemplos anonimizados em testes
+e documentação.

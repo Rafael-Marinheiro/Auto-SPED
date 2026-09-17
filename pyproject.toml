@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "auto-sped"
+version = "0.1.0"
+description = "Gerador de EFD ICMS/IPI com capturadores reutilizáveis para ERPs"
+authors = [{ name = "Rafael Marinheiro" }]
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = ["fdb>=2.0.2"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.0"]
+
+[project.scripts]
+sped-generate = "sped_mensal.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["sped_mensal*"]
