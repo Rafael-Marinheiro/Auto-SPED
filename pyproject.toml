@@ -18,6 +18,7 @@ dev = ["pytest>=8.0"]
 sped-generate = "sped_mensal.cli:main"
 sped-capture-map = "sped_mensal.cli:main_capture_map"
 sped-validate = "sped_mensal.cli:main_validate_sped"
+sped-summary = "sped_mensal.cli:main_capture_summary"
 
 [tool.setuptools.packages.find]
 include = ["sped_mensal*"]

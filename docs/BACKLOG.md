@@ -31,6 +31,7 @@
 - [x] Centralizar normalizações de CST, CFOP, NCM, CEST, tipo de item e alíquota.
 - [x] Criar modelos tipados para empresa, documento, item e tributos.
 - [x] Criar resumo tipado da captura para a futura interface.
+- [x] Expor prévia da captura por CLI, com tabela e JSON.
 - [ ] Criar testes de paridade entre a emissão legado e a nova emissão para
   períodos anonimizados.
 

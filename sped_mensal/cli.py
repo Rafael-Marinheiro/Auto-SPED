@@ -9,6 +9,7 @@ from typing import Optional, Sequence
 
 from .database import SpedDataExtractor
 from .providers import FirebirdSaoPedroProvider
+from .services import build_capture_summary
 from .validation import validate_provider, validate_sped_file
 from .writer import SpedWriter
 
@@ -142,6 +143,44 @@ def main_validate_sped(argv: Optional[Sequence[str]] = None) -> int:
         args.report.write_text(json.dumps(report.to_dict(), ensure_ascii=False, indent=2), encoding="utf-8")
         print(f"Relatório gravado em {args.report.resolve()}")
     return 0 if report.is_valid else 1
+
+
+def main_capture_summary(argv: Optional[Sequence[str]] = None) -> int:
+    """Mostra uma prévia tipada dos dados capturados no período."""
+
+    parser = argparse.ArgumentParser(description="Resume os dados capturados de um período fiscal.")
+    parser.add_argument("--database", required=True, type=Path, help="Caminho do banco Firebird.")
+    parser.add_argument("--start-date", required=True, help="Início do período (YYYY-MM-DD).")
+    parser.add_argument("--end-date", required=True, help="Fim do período (YYYY-MM-DD).")
+    parser.add_argument("--format", choices=("table", "json"), default="table")
+    parser.add_argument("--output", type=Path, help="Arquivo JSON opcional para salvar a prévia.")
+    args = parser.parse_args(argv)
+    summary = build_capture_summary(
+        FirebirdSaoPedroProvider(str(args.database)), args.start_date, args.end_date
+    )
+    payload = summary.to_dict()
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+        print(f"Prévia gravada em {args.output.resolve()}")
+    if args.format == "json":
+        print(json.dumps(payload, ensure_ascii=False, indent=2))
+        return 0
+
+    print(f"Empresa: {summary.company.name} | CNPJ: {summary.company.cnpj}")
+    print(f"Período: {summary.start_date} a {summary.end_date}")
+    print(
+        f"Produtos: {summary.product_count} | Participantes: {summary.participant_count} | "
+        f"Documentos: {summary.document_count} | Total: {summary.document_total:.2f}"
+    )
+    print("NUM_DOC       ORIGEM       MODELO  SÉRIE  EMISSÃO       TOTAL")
+    print("-" * 72)
+    for document in summary.documents:
+        print(
+            f"{document.number:<13} {document.origin:<12} {document.model:<7} "
+            f"{document.series:<6} {document.issue_date:<13} {document.total:.2f}"
+        )
+    return 0
 
 
 if __name__ == "__main__":

@@ -70,6 +70,14 @@ Além da pré-validação do banco, o TXT pode ser conferido antes de abrir o PV
 sped-validate saida_sped.txt --report relatorio-sped.json
 ```
 
+### Prévia da captura
+
+Confira os dados que serão usados no período antes da validação ou geração:
+
+```bash
+sped-summary --database DADOS.FDB --start-date 2026-08-01 --end-date 2026-08-31 --format table
+```
+
 ## Segurança de dados
 
 Nunca versione bancos `.FDB`, arquivos SPED emitidos, XMLs, credenciais, logs

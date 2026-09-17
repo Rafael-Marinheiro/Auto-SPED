@@ -18,3 +18,4 @@ def test_capture_summary_is_read_only_and_ready_for_a_ui():
     assert summary.document_count == 2
     assert summary.document_total == Decimal("12.50")
     assert summary.product_count == 2
+    assert summary.to_dict()["document_total"] == "12.50"

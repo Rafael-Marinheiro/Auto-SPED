@@ -21,6 +21,39 @@ class CaptureSummary:
     document_total: Decimal
     documents: tuple[FiscalDocument, ...]
 
+    def to_dict(self) -> dict[str, object]:
+        """Formato seguro para CLI, interface e relatório local."""
+
+        return {
+            "provider_id": self.provider_id,
+            "start_date": self.start_date,
+            "end_date": self.end_date,
+            "company": {
+                "name": self.company.name,
+                "cnpj": self.company.cnpj,
+                "state": self.company.state,
+                "municipality_code": self.company.municipality_code,
+            },
+            "product_count": self.product_count,
+            "participant_count": self.participant_count,
+            "document_count": self.document_count,
+            "document_total": f"{self.document_total:.2f}",
+            "documents": [
+                {
+                    "source_id": document.source_id,
+                    "origin": document.origin,
+                    "operation": document.operation,
+                    "model": document.model,
+                    "series": document.series,
+                    "number": document.number,
+                    "issue_date": document.issue_date,
+                    "partner_code": document.partner_code,
+                    "total": f"{document.total:.2f}",
+                }
+                for document in self.documents
+            ],
+        }
+
 
 def build_capture_summary(
     provider: FiscalDataProvider, start_date: str, end_date: str
