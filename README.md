@@ -22,6 +22,17 @@ python main_fast.py --database DADOS.FDB --start-date 2026-08-01 --end-date 2026
 Quando houver mais de uma versão do Firebird instalada, passe a DLL cliente
 correta com `--fbclient`. Consulte a [configuração do Firebird](docs/FIREBIRD_SETUP.md).
 
+### Seletor desktop do cliente Firebird
+
+Instale a interface opcional e abra o seletor para detectar DLLs locais ou
+baixar um kit ZIP oficial da versão escolhida. Os binários ficam no perfil
+local do usuário, nunca no repositório.
+
+```bash
+pip install -e ".[desktop]"
+auto-sped-desktop
+```
+
 ## Arquitetura
 
 ```text
@@ -34,6 +45,7 @@ a captura das tabelas do ERP atual.
 
 - [Arquitetura e mapa de captura](docs/ARCHITECTURE.md)
 - [Backlog priorizado](docs/BACKLOG.md)
+- [Cliente Firebird e downloads oficiais](docs/FIREBIRD_SETUP.md)
 
 ## Desenvolvimento
 

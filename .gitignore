@@ -11,3 +11,4 @@ saida_sped_out_*.txt
 SPED *.txt
 execucao*.log
 *.pdf
+firebird-clients/

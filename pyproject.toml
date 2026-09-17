@@ -13,12 +13,14 @@ dependencies = ["fdb>=2.0.2"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.0"]
+desktop = ["PySide6>=6.6"]
 
 [project.scripts]
 sped-generate = "sped_mensal.cli:main"
 sped-capture-map = "sped_mensal.cli:main_capture_map"
 sped-validate = "sped_mensal.cli:main_validate_sped"
 sped-summary = "sped_mensal.cli:main_capture_summary"
+auto-sped-desktop = "sped_mensal.desktop:main"
 
 [tool.setuptools.packages.find]
 include = ["sped_mensal*"]

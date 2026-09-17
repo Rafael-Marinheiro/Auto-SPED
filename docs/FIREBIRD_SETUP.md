@@ -25,6 +25,18 @@ Sem `--fbclient`, a aplicação preserva a compatibilidade legada: verifica
 `FBCLIENT_PATH`, instalações locais conhecidas e, por último, deixa o sistema
 localizar o nome padrão da biblioteca.
 
+## Seletor desktop e downloads
+
+Após instalar a opção `desktop` (`pip install -e ".[desktop]"`), execute
+`auto-sped-desktop`. O seletor procura instalações locais, aceita a escolha
+manual de uma DLL e oferece download sob demanda dos kits ZIP oficiais do
+Firebird 2.5, 3.0, 4.0 e 5.0, em 32 ou 64 bits. A DLL é extraída para o perfil
+local do usuário e não é versionada pelo Auto-SPED.
+
+O catálogo usa os artefatos publicados pelo
+[projeto Firebird](https://www.firebirdsql.org/en/downloads/). A série 2.5 é
+mantida para compatibilidade, mas está descontinuada pelo projeto Firebird.
+
 ## Arquitetura e versão
 
 - Python 64 bits requer `fbclient.dll` 64 bits; Python 32 bits requer DLL de
