@@ -96,6 +96,8 @@ class GenerationWorker(QObject):
                 self.request.end_date_iso,
                 self.request.output_path,
                 str(self.request.client_library) if self.request.client_library else None,
+                self.request.output_encoding,
+                self.request.revenue_code,
             )
             self.progress.emit(100)
             self._record_history("concluída", output)
@@ -120,6 +122,12 @@ class AutoSpedMainWindow(QMainWindow):
         self.provider.addItem("Firebird — ERP São Pedro", "firebird-sao-pedro")
         self.database = QLineEdit()
         self.output = QLineEdit(f"saida_sped_out_{today:%Y-%m}.txt")
+        self.output_encoding = QComboBox()
+        self.output_encoding.addItem("UTF-8", "utf-8")
+        self.output_encoding.addItem("ISO-8859-1 (Latin-1)", "iso-8859-1")
+        self.output_encoding.addItem("Windows-1252", "cp1252")
+        self.revenue_code = QLineEdit()
+        self.revenue_code.setPlaceholderText("Automático quando houver regra segura para a UF")
         self.start_date = QDateEdit(QDate(today.year, today.month, 1))
         self.end_date = QDateEdit(QDate(today.year, today.month, today.day))
         for control in (self.start_date, self.end_date):
@@ -177,6 +185,8 @@ class AutoSpedMainWindow(QMainWindow):
         form.addRow("Data inicial:", self.start_date)
         form.addRow("Data final:", self.end_date)
         form.addRow("Arquivo SPED:", self._path_field(self.output, self._choose_output))
+        form.addRow("Codificação do TXT:", self.output_encoding)
+        form.addRow("Código de receita E116:", self.revenue_code)
         return group
 
     @staticmethod
@@ -215,6 +225,8 @@ class AutoSpedMainWindow(QMainWindow):
             end_date=self.end_date.date().toPython(),
             output_path=Path(self.output.text().strip()),
             client_library=Path(client) if client else None,
+            output_encoding=str(self.output_encoding.currentData()),
+            revenue_code=self.revenue_code.text().strip() or None,
         )
 
     @Slot()
@@ -234,6 +246,8 @@ class AutoSpedMainWindow(QMainWindow):
         self._append(f"Banco: {request.database_path}")
         self._append(f"Período: {request.start_date:%d/%m/%Y} a {request.end_date:%d/%m/%Y}")
         self._append(f"Cliente Firebird: {request.client_library or 'detecção automática'}")
+        self._append(f"Codificação do TXT: {request.output_encoding}")
+        self._append(f"Código de receita E116: {request.revenue_code or 'automático pela empresa/UF'}")
         self._thread = QThread(self)
         self._worker = GenerationWorker(request, self.history_store)
         self._worker.moveToThread(self._thread)

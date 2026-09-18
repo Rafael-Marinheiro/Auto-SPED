@@ -25,6 +25,8 @@ def generate_sped(
     start_date: str,
     end_date: str,
     output_path: Path,
+    output_encoding: str = "utf-8",
+    revenue_code: str | None = None,
 ) -> GenerationResult:
     """Gera o arquivo usando uma fonte que implementa o contrato fiscal.
 
@@ -45,8 +47,9 @@ def generate_sped(
         extractor=provider,
         start_date=start_date,
         end_date=end_date,
+        revenue_code=revenue_code,
     )
-    writer.write(output_path)
+    writer.write(output_path, encoding=output_encoding)
     return GenerationResult(
         output_path=output_path.resolve(),
         provider_id=provider.provider_id,

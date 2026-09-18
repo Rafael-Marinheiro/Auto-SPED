@@ -16,8 +16,25 @@ O fluxo já utilizado no ERP agora recebe o período e o destino por parâmetros
 sem edição do código:
 
 ```bash
-python main_fast.py --database DADOS.FDB --start-date 2026-08-01 --end-date 2026-08-31 --output saida_sped_out_2026-08.txt
+python main_fast.py --database DADOS.FDB --start-date 2026-08-01 --end-date 2026-08-31 --output saida_sped_out_2026-08.txt --encoding utf-8
 ```
+
+A codificação do TXT pode ser escolhida como `utf-8`, `iso-8859-1` ou
+`cp1252`. UTF-8 permanece como padrão para preservar o comportamento atual.
+
+O código de receita do registro E116 é selecionado nesta ordem: opção
+`--revenue-code`, configuração `COD_REC_E116`/`E116_COD_REC`/`COD_REC` da
+empresa e padrão confirmado da UF. Há padrões oficiais verificados para AP,
+CE, GO, PB, PE, PR, RJ, RN, SC e SP. Consulte o
+[catálogo do E116](docs/E116_REVENUE_CODES.md). Nas demais UFs, informe o
+código aplicável à empresa, por exemplo:
+
+```bash
+python main_fast.py --database DADOS.FDB --start-date 2026-08-01 --end-date 2026-08-31 --output saida_sped.txt --revenue-code CODIGO-DA-UF
+```
+
+A emissão é bloqueada quando não existe configuração segura; assim, um código
+estadual não é aplicado silenciosamente a uma empresa incompatível.
 
 Quando houver mais de uma versão do Firebird instalada, passe a DLL cliente
 correta com `--fbclient`. Consulte a [configuração do Firebird](docs/FIREBIRD_SETUP.md).

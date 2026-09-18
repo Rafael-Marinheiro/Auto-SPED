@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Optional, Sequence
 
 from .database import SpedDataExtractor
+from .output_encoding import SUPPORTED_OUTPUT_ENCODINGS
 from .providers import FirebirdSaoPedroProvider
 from .services import build_capture_summary
 from .validation import validate_provider, validate_sped_file
@@ -46,6 +47,16 @@ def build_parser() -> argparse.ArgumentParser:
         "--fbclient",
         type=Path,
         help="Caminho do fbclient.dll compatível com o Firebird e com este Python.",
+    )
+    parser.add_argument(
+        "--encoding",
+        choices=SUPPORTED_OUTPUT_ENCODINGS,
+        default="utf-8",
+        help="Codificação do TXT de saída (default: utf-8).",
+    )
+    parser.add_argument(
+        "--revenue-code",
+        help="Código de receita do E116; se omitido, usa a empresa/UF quando configurada.",
     )
     parser.add_argument(
         "--validate-only",
@@ -102,9 +113,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     # Gera o SPED
     writer = SpedWriter()
     writer.generate_sped_from_db(
-        company_info, accountant_info, participants, products, units, invoices, extractor, args.start_date, args.end_date
+        company_info, accountant_info, participants, products, units, invoices, extractor,
+        args.start_date, args.end_date, revenue_code=args.revenue_code
     )
-    writer.write(args.output)
+    writer.write(args.output, encoding=args.encoding)
 
     print(f"Arquivo SPED gerado com sucesso em {args.output.resolve()}")
     return 0

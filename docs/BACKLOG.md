@@ -30,12 +30,24 @@
   compatibilidade de versão e arquitetura.
 - [ ] Extrair, por partes, as normalizações homologadas de `main_fast.py` para
   serviços testáveis.
+  - [x] Centralizar datas SPED, situação documental e formatação monetária.
 - [x] Centralizar normalizações de CST, CFOP, NCM, CEST, tipo de item e alíquota.
 - [x] Criar modelos tipados para empresa, documento, item e tributos.
 - [x] Criar resumo tipado da captura para a futura interface.
 - [x] Expor prévia da captura por CLI, com tabela e JSON.
-- [ ] Criar testes de paridade entre a emissão legado e a nova emissão para
+- [x] Tornar o código de receita do E116 configurável por empresa/UF,
+  removendo o valor legado fixo `1210` do núcleo reutilizável.
+  - [x] Priorizar configuração da emissão e da empresa antes do padrão da UF.
+  - [x] Usar `1210` automaticamente apenas quando a UF for RN, com base oficial.
+  - [x] Bloquear UFs sem código configurado em vez de assumir código incorreto.
+  - [x] Pesquisar fontes oficiais e ampliar os padrões inequívocos para AP, CE,
+    GO, PB, PE, PR, RJ, SC e SP, mantendo configuração explícita nas UFs com
+    códigos dependentes de atividade ou regime.
+- [x] Criar testes de paridade entre a emissão legado e a nova emissão para
   períodos anonimizados.
+  - [x] Cobrir período sem movimento com igualdade registro a registro.
+  - [x] Cobrir período com NF-e, NFC-e e apuração de ICMS.
+  - [x] Cobrir período com documentos de compra.
 
 ## Fase 2 — Validação preventiva (terceira)
 
@@ -55,6 +67,8 @@
 - [x] Criar seletor desktop de cliente Firebird com detecção local e download
   sob demanda de kits oficiais.
 - [x] Permitir escolher capturador, banco, período e arquivo de destino.
+- [x] Permitir escolher a codificação do TXT entre UTF-8, ISO-8859-1 e
+  Windows-1252 na CLI e na interface desktop.
 - [x] Exibir progresso, log, resumo e relatório de inconsistências antes da emissão.
 - [x] Criar tela “Mapa de captura” com origem, transformação e destino SPED.
 - [x] Registrar histórico local das emissões e correções aplicadas.

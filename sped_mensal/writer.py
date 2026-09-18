@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 """UtilitÃ¡rios para geraÃ§Ã£o do arquivo SPED."""
 
 from __future__ import annotations
@@ -8,6 +8,7 @@ from inspect import signature
 from pathlib import Path
 from typing import Callable, Dict, Iterable, List, Sequence
 
+from .output_encoding import normalize_output_encoding
 from .registers import RegisterDefinition, get_definition
 
 
@@ -104,7 +105,20 @@ class SpedWriter:
             lines.append(line)
             register_counts[code] = register_counts.get(code, 0) + 1
 
-        block_0_entries = [entry for entry in self._entries if entry.definition.block == "0"]
+        referenced_items = {
+            entry.data.get("COD_ITEM", "").strip()
+            for entry in self._entries
+            if entry.code == "C170" and entry.data.get("COD_ITEM", "").strip()
+        }
+        block_0_entries = [
+            entry
+            for entry in self._entries
+            if entry.definition.block == "0"
+            and not (
+                entry.code == "0200"
+                and entry.data.get("COD_ITEM", "").strip() not in referenced_items
+            )
+        ]
         if not block_0_entries:
             raise ValueError("O bloco 0 Ã© obrigatÃ³rio e nÃ£o foi informado.")
         for entry in block_0_entries:
@@ -208,7 +222,7 @@ class SpedWriter:
 
         snapshot_counts = dict(register_counts)
 
-        append_line("9001", ["1"])
+        append_line("9001", ["0"])
 
         control_counts: Dict[str, int] = dict(snapshot_counts)
         control_counts["9001"] = control_counts.get("9001", 0) + 1
@@ -235,100 +249,31 @@ class SpedWriter:
         lines = [line for line in lines if line.strip()]
         return "\n".join(lines)
 
-    def generate_sped_from_db(self, company_info, accountant_info, participants, products, units, invoices, extractor, start_date, end_date, log_fn: Callable[[str], None] | None = None):
+    def generate_sped_from_db(self, company_info, accountant_info, participants, products, units, invoices, extractor, start_date, end_date, log_fn: Callable[[str], None] | None = None, revenue_code: str | None = None):
         """Gera o SPED a partir dos dados extraÃ­dos do banco de dados."""
+        from .services.normalization import (
+            digits_only,
+            normalize_access_key,
+            normalize_cst,
+            normalize_document_status,
+            normalize_municipality_code,
+            normalize_person_ids,
+            normalize_sped_date,
+            format_sped_money,
+        )
+        from .services.revenue_code import resolve_e116_revenue_code
+
+        selected_revenue_code = resolve_e116_revenue_code(company_info, revenue_code)
+
         logger = log_fn or (lambda msg: None)
 
-        def digits_only(value: str) -> str:
-            s = "" if value is None else str(value)
-            return "".join(ch for ch in s if ch.isdigit())
+        # FormataÃ§Ã£o monetÃ¡ria com 2 casas (para campos VL_*)
+        from decimal import Decimal, InvalidOperation
 
-        def normalize_person_ids(cnpj_val: str, cpf_val: str) -> tuple[str, str]:
-            """Garante que CNPJ/CPF fiquem no campo correto.
+        fmt_date = normalize_sped_date
+        map_cod_sit = normalize_document_status
+        money2 = format_sped_money
 
-            - Se CNPJ vier com 11 dígitos, trata como CPF.
-            - Se CPF vier com 14 dígitos, trata como CNPJ.
-            - Só aceita CNPJ com 14 e CPF com 11 dígitos; caso contrário, em branco.
-            """
-            cnpj = digits_only(cnpj_val)
-            cpf = digits_only(cpf_val)
-            if len(cnpj) == 14:
-                cpf_ok = cpf if len(cpf) == 11 else ""
-                return cnpj, cpf_ok
-            if len(cnpj) == 11 and (len(cpf) != 11):
-                return "", cnpj
-            if len(cpf) == 14 and (len(cnpj) != 14):
-                return cpf, ""
-            if len(cpf) == 11:
-                return "", cpf
-            return "", ""
-
-        def sanitize_mun(value: str) -> str:
-            v = digits_only(value)
-            return "" if v in {"", "0"} else v
-
-        def fmt_date(value: str) -> str:
-            from datetime import datetime
-            s = "" if value is None else str(value)
-            if not s:
-                return ""
-            for fmt in ("%Y-%m-%d", "%Y%m%d", "%d/%m/%Y", "%d%m%Y"):
-                try:
-                    return datetime.strptime(s, fmt).strftime("%d%m%Y")
-                except ValueError:
-                    continue
-            return s.replace("-", "")
-
-        def map_cod_sit(raw: str) -> str:
-            s = "" if raw is None else str(raw).strip().upper()
-            # JÃ¡ Ã© um cÃ³digo vÃ¡lido
-            if s in {"00","01","02","03","04","05","06","07","08"}:
-                return s
-            # HeurÃ­sticas de mapeamento
-            if s in {"C","CANC","CANCEL","CANCELADA","CANCELADO"}:
-                return "02"
-            if s.startswith("DENEG") or s in {"D","DEN","DENEGADA","DENEGADO"}:
-                return "04"
-            if s.startswith("INUTIL") or s in {"I","INUTILIZADA","INUTILIZADO"}:
-                return "05"
-            # SituaÃ§Ãµes normalizadas ou desconhecidas tratadas como regular
-            if s in {"T","O","AUTORIZADA","AUTORIZADO","NORMAL","REGULAR","EMITIDA"}:
-                return "00"
-            return "00"
-
-        # Formatação monetária com 2 casas (para campos VL_*)
-        from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
-
-        def _to_decimal_2(x) -> Decimal:
-            s = "" if x is None else str(x).strip()
-            if s == "":
-                return Decimal("0")
-            if "," in s and "." in s:
-                s = s.replace(".", "").replace(",", ".")
-            else:
-                s = s.replace(",", ".")
-            try:
-                return Decimal(s)
-            except InvalidOperation:
-                return Decimal("0")
-
-        def money2(x) -> str:
-            d = x if isinstance(x, Decimal) else _to_decimal_2(x)
-            return str(d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
-
-        def normalize_cst(value: str, width: int) -> str:
-            s = "" if value is None else str(value)
-            # Mantém apenas dígitos e ajusta ao tamanho esperado
-            digits = "".join(ch for ch in s if ch.isdigit())
-            if len(digits) > width:
-                digits = digits[-width:]
-            return digits.zfill(width) if digits else ""
-
-        def normalize_chv(chv: str) -> str:
-            # Chave NFe/NFC-e: exatamente 44 dígitos; caso contrário, em branco
-            s = "" if chv is None else str(chv)
-            digits = "".join(ch for ch in s if ch.isdigit())
-            return digits if len(digits) == 44 else ""
         # Registro 0000 - Abertura do arquivo
         self.add_register("0000", {
             "COD_VER": "020",  # VersÃ£o do layout
@@ -339,7 +284,7 @@ class SpedWriter:
             **(lambda cnpj_cpf: {"CNPJ": cnpj_cpf[0], "CPF": cnpj_cpf[1]})(normalize_person_ids(company_info.get("CNPJ", ""), company_info.get("CPF", ""))),
             "UF": company_info.get("UF", ""),
             "IE": digits_only(company_info.get("IE", "")),
-            "COD_MUN": sanitize_mun(company_info.get("COD_MUN", "")),
+            "COD_MUN": normalize_municipality_code(company_info.get("COD_MUN", "")),
             "IM": company_info.get("IM", ""),
             "SUFRAMA": company_info.get("SUFRAMA", ""),
             "IND_PERFIL": "A",  # Perfil A
@@ -376,7 +321,7 @@ class SpedWriter:
             "FONE": digits_only(accountant_info.get("FONE", "")),
             "FAX": digits_only(accountant_info.get("FAX", "")),
             "EMAIL": accountant_info.get("EMAIL", ""),
-            "COD_MUN": sanitize_mun(accountant_info.get("COD_MUN", "")),
+            "COD_MUN": normalize_municipality_code(accountant_info.get("COD_MUN", "")),
         })
 
         # Registros 0150 - Participantes
@@ -387,7 +332,7 @@ class SpedWriter:
                 "COD_PAIS": "1058",  # Brasil (cÃ³digo IBGE)
                 **(lambda cnpj_cpf: {"CNPJ": cnpj_cpf[0], "CPF": cnpj_cpf[1]})(normalize_person_ids(participant.get("CNPJ", ""), participant.get("CPF", ""))),
                 "IE": digits_only(participant.get("IE", "")),
-                "COD_MUN": sanitize_mun(participant.get("COD_MUN", "")),
+                "COD_MUN": normalize_municipality_code(participant.get("COD_MUN", "")),
                 "SUFRAMA": "",
                 "END": participant.get("END", ""),
                 "NUM": digits_only(participant.get("NUM", "")) or participant.get("NUM", ""),
@@ -410,7 +355,7 @@ class SpedWriter:
                 "COD_BARRA": "",
                 "COD_ANT_ITEM": "",
                 "UNID_INV": product.get("UNID_INV", ""),
-                # TIPO_ITEM deve conter apenas o código (ex.: "00")
+                # TIPO_ITEM deve conter apenas o cÃ³digo (ex.: "00")
                 "TIPO_ITEM": digits_only(product.get("TIPO_ITEM", "")),
                 "COD_NCM": digits_only(product.get("COD_NCM", "")),
                 "EX_IPI": "",
@@ -446,10 +391,10 @@ class SpedWriter:
                 invoice["IND_EMIT"] = str(invoice.get("IND_EMIT", "")).strip() or ("0" if ind_oper == "1" else "1")
             def map_ind_pgto(raw: str, cod_mod: str) -> str:
                 s = "" if raw is None else str(raw).strip().upper()
-                # 0 = à vista, 1 = a prazo, 2 = outros
-                if s in {"0","A VISTA","AVISTA","VISTA","DINHEIRO","PIX","DEBITO","DÉBITO","CARTAO DEBITO","CARTÃO DÉBITO"}:
+                # 0 = Ã  vista, 1 = a prazo, 2 = outros
+                if s in {"0","A VISTA","AVISTA","VISTA","DINHEIRO","PIX","DEBITO","DÃ‰BITO","CARTAO DEBITO","CARTÃƒO DÃ‰BITO"}:
                     return "0"
-                if s in {"1","A PRAZO","APRAZO","PRAZO","CREDITO","CRÉDITO","CARTAO CREDITO","CARTÃO CRÉDITO","BOLETO","DUPLICATA"}:
+                if s in {"1","A PRAZO","APRAZO","PRAZO","CREDITO","CRÃ‰DITO","CARTAO CREDITO","CARTÃƒO CRÃ‰DITO","BOLETO","DUPLICATA"}:
                     return "1"
                 if s == "":
                     return "0" if cod_mod == "65" else "2"
@@ -463,7 +408,7 @@ class SpedWriter:
                 "COD_SIT": map_cod_sit(invoice.get("COD_SIT", "")),
                 "SER": invoice.get("SER", ""),
                 "NUM_DOC": invoice.get("NUM_DOC", ""),
-                "CHV_NFE": normalize_chv(invoice.get("CHV_NFE", "")),
+                "CHV_NFE": normalize_access_key(invoice.get("CHV_NFE", "")),
                 "DT_DOC": fmt_date(invoice.get("DT_DOC", "")),
                 "DT_E_S": fmt_date(invoice.get("DT_E_S", "")),
                 "VL_DOC": money2(invoice.get("VL_DOC", 0)),
@@ -485,7 +430,7 @@ class SpedWriter:
                 "VL_PIS_ST": money2(0),
                 "VL_COFINS_ST": money2(0),
             }
-            # NFC-e (modelo 65): não informar campos proibidos pelo validador
+            # NFC-e (modelo 65): nÃ£o informar campos proibidos pelo validador
             if cod_mod == "65":
                 c100["COD_PART"] = ""
                 for fld in ("VL_BC_ICMS_ST","VL_ICMS_ST","VL_IPI","VL_PIS","VL_COFINS","VL_PIS_ST","VL_COFINS_ST"):
@@ -493,7 +438,7 @@ class SpedWriter:
             self.add_register("C100", c100)
 
             # Registros C170 - Itens da nota fiscal
-            # Preferir novo método por IDs; se ausentes, resolver pelo par (SER, NUM_DOC)
+            # Preferir novo mÃ©todo por IDs; se ausentes, resolver pelo par (SER, NUM_DOC)
             get_by_ids = getattr(extractor, "get_invoice_items_by_ids", None)
             if callable(get_by_ids):
                 doc_id = invoice.get("DOC_ID", "")
@@ -504,8 +449,8 @@ class SpedWriter:
                     venda_id = ids.get("VENDA_ID", "")
                 if idx <= 5:
                     logger(f"Buscando itens nota {idx} (doc_id={doc_id}, venda_id={venda_id})")
-                # Os conectores atuais recebem também operação e origem. Mantemos
-                # os três argumentos originais para conectores já existentes.
+                # Os conectores atuais recebem tambÃ©m operaÃ§Ã£o e origem. Mantemos
+                # os trÃªs argumentos originais para conectores jÃ¡ existentes.
                 parameter_count = len(signature(get_by_ids).parameters)
                 if parameter_count >= 5:
                     items = get_by_ids(
@@ -546,7 +491,10 @@ class SpedWriter:
 
             if idx <= 5:
                 logger(f"Itens carregados nota {idx}: {len(items)}")
-            if cod_mod != "65":
+            emit_c170 = cod_mod != "65" and not (
+                cod_mod == "55" and str(invoice.get("IND_EMIT", "")).strip() == "0"
+            )
+            if emit_c170:
                 doc_cfop_base = None
                 valid_base = {"5", "6"} if ind_oper == "1" else {"1", "2"}
                 for it in items:
@@ -633,7 +581,7 @@ class SpedWriter:
                     })
 
             # Registros C190 - Resumo por CST/CFOP/ALIQ da nota fiscal
-            # Agrega valores a partir dos itens (mesmo quando não emitimos C170, ex.: NFC-e)
+            # Agrega valores a partir dos itens (mesmo quando nÃ£o emitimos C170, ex.: NFC-e)
             from decimal import Decimal, InvalidOperation
 
             def _dec(x) -> Decimal:
@@ -649,7 +597,7 @@ class SpedWriter:
                 except InvalidOperation:
                     return Decimal("0")
 
-            # Cancelada? Não gerar C190
+            # Cancelada? NÃ£o gerar C190
             cod_sit_norm = map_cod_sit(invoice.get("COD_SIT", ""))
             is_canceled = (cod_sit_norm == "02") or (str(invoice.get("SITUACAO", "")).strip().upper() == "C")
 
@@ -670,13 +618,13 @@ class SpedWriter:
                         "VL_RED_BC": Decimal("0"),
                         "VL_IPI": Decimal("0"),
                     })
-                    # VL_OPR: somatório do VALOR_ITEM/total; usar VL_TOTAL quando disponível
+                    # VL_OPR: somatÃ³rio do VALOR_ITEM/total; usar VL_TOTAL quando disponÃ­vel
                     g["VL_OPR"] += _dec(item.get("_VL_ITEM_TOTAL", item.get("VL_TOTAL", item.get("VL_ITEM", 0))))
                     g["VL_BC_ICMS"] += _dec(item.get("VL_BC_ICMS", 0))
                     g["VL_ICMS"] += _dec(item.get("VL_ICMS", 0))
                     g["VL_BC_ICMS_ST"] += _dec(item.get("VL_BC_ICMS_ST", 0))
                     g["VL_ICMS_ST"] += _dec(item.get("VL_ICMS_ST", 0))
-                    # VL_RED_BC zerado conforme orientação
+                    # VL_RED_BC zerado conforme orientaÃ§Ã£o
                     if cst == "020":
                         vl_tot = _dec(item.get("_VL_ITEM_TOTAL", item.get("VL_TOTAL", item.get("VL_ITEM", 0))))
                         vl_bc = _dec(item.get("VL_BC_ICMS", 0))
@@ -688,7 +636,7 @@ class SpedWriter:
                         g["VL_RED_BC"] += Decimal("0")
                     g["VL_IPI"] += _dec(item.get("VL_IPI", 0))
 
-                # Geração mínima: se não houver itens/agrupamentos, gerar C190 zerado padrão
+                # GeraÃ§Ã£o mÃ­nima: se nÃ£o houver itens/agrupamentos, gerar C190 zerado padrÃ£o
                 if not aggregates:
                     aggregates[("000", "5102", "0")] = {
                         "VL_OPR": Decimal("0"),
@@ -822,8 +770,6 @@ class SpedWriter:
         vl_sld_credor_ant = Decimal("0")
         vl_tot_ded = Decimal("0")
         deb_esp = Decimal("0")
-        vl_out_ded = Decimal("0")
-
         diff = total_debitos - total_creditos
         if diff >= 0:
             vl_sld_apurado = diff
@@ -835,27 +781,54 @@ class SpedWriter:
             vl_sld_credor_transportar = -diff
 
         self.add_register("E110", {
-            "VL_TOT_DEBITOS": str(total_debitos.normalize()),
-            "VL_AJ_DEBITOS": str(vl_aj_debitos.normalize()),
-            "VL_TOT_AJ_DEBITOS": str(vl_tot_aj_debitos.normalize()),
-            "VL_ESTORNOS_CRED": str(vl_estornos_cred.normalize()),
-            "VL_TOT_CREDITOS": str(total_creditos.normalize()),
-            "VL_AJ_CREDITOS": str(vl_aj_creditos.normalize()),
-            "VL_TOT_AJ_CREDITOS": str(vl_tot_aj_creditos.normalize()),
-            "VL_ESTORNOS_DEB": str(vl_estornos_deb.normalize()),
-            "VL_SLD_CREDOR_ANT": str(vl_sld_credor_ant.normalize()),
-            "VL_SLD_APURADO": str(Decimal(vl_sld_apurado).normalize()),
-            "VL_TOT_DED": str(vl_tot_ded.normalize()),
-            "VL_ICMS_RECOLHER": str(Decimal(vl_icms_recolher).normalize()),
-            "DEB_ESP": str(deb_esp.normalize()),
-            "VL_SLD_CREDOR_TRANSPORTAR": str(Decimal(vl_sld_credor_transportar).normalize()),
-            "VL_OUT_DED": str(vl_out_ded.normalize()),
+            "VL_TOT_DEBITOS": money2(total_debitos),
+            "VL_AJ_DEBITOS": money2(vl_aj_debitos),
+            "VL_TOT_AJ_DEBITOS": money2(vl_tot_aj_debitos),
+            "VL_ESTORNOS_CRED": money2(vl_estornos_cred),
+            "VL_TOT_CREDITOS": money2(total_creditos),
+            "VL_AJ_CREDITOS": money2(vl_aj_creditos),
+            "VL_TOT_AJ_CREDITOS": money2(vl_tot_aj_creditos),
+            "VL_ESTORNOS_DEB": money2(vl_estornos_deb),
+            "VL_SLD_CREDOR_ANT": money2(vl_sld_credor_ant),
+            "VL_SLD_APURADO": money2(vl_sld_apurado),
+            "VL_TOT_DED": money2(vl_tot_ded),
+            "VL_ICMS_RECOLHER": money2(vl_icms_recolher),
+            "VL_SLD_CREDOR_TRANSPORTAR": money2(vl_sld_credor_transportar),
+            "DEB_ESP": money2(deb_esp),
         })
 
-    def write(self, path: Path) -> None:
+        from datetime import datetime, timedelta
+
+        try:
+            end = datetime.strptime(end_date, "%Y-%m-%d")
+            next_month = (end.replace(day=1) + timedelta(days=32)).replace(day=1)
+            due_date = next_month.replace(day=15).strftime("%d%m%Y")
+            reference_month = end.strftime("%m%Y")
+        except ValueError:
+            due_date = ""
+            reference_month = ""
+        self.add_register("E116", {
+            "COD_OR": "000",
+            "VL_OR": money2(vl_icms_recolher),
+            "DT_VCTO": due_date,
+            "COD_REC": selected_revenue_code,
+            "NUM_PROC": "",
+            "IND_PROC": "",
+            "PROC": "",
+            "TXT_COMPL": "",
+            "MES_REF": reference_month,
+        })
+
+        self.add_register("1001", {"IND_MOV": "0"})
+        self.add_register("1010", {
+            field: "N" for field in get_definition("1010").fields
+        })
+
+    def write(self, path: Path, encoding: str = "utf-8") -> None:
+        selected_encoding = normalize_output_encoding(encoding)
         content = self.to_string()
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(content, encoding="utf-8")
+        path.write_text(content, encoding=selected_encoding)
 
 
 def format_line(code: str, values: Iterable[str]) -> str:

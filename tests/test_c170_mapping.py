@@ -47,7 +47,7 @@ def parse(line: str) -> list[str]:
 def test_c170_items_match_invoice_by_id():
     writer = SpedWriter()
 
-    company_info = {"NOME": "X", "CNPJ": "123", "UF": "SP", "IE": "", "COD_MUN": "3550308", "IND_ATIV": "1"}
+    company_info = {"NOME": "X", "CNPJ": "123", "UF": "SP", "IE": "", "COD_MUN": "3550308", "IND_ATIV": "1", "COD_REC": "CODIGO-TESTE"}
     accountant_info = {"NOME": "Y", "CPF": "", "CRC": "", "CNPJ": "", "CEP": "", "END": "", "NUM": "", "COMPL": "", "BAIRRO": "", "FONE": "", "FAX": "", "EMAIL": "", "COD_MUN": "3550308"}
     participants = []
     products = [{

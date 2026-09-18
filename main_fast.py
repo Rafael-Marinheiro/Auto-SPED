@@ -7,6 +7,7 @@ Uso: python main_fast.py
 from pathlib import Path
 import argparse
 from sped_mensal.database import SpedDataExtractor
+from sped_mensal.output_encoding import SUPPORTED_OUTPUT_ENCODINGS, normalize_output_encoding
 from sped_mensal.services.normalization import (
     digits_only,
     normalize_cest,
@@ -16,6 +17,7 @@ from sped_mensal.services.normalization import (
     normalize_tax_rate,
     normalize_tipo_item,
 )
+from sped_mensal.services.revenue_code import resolve_e116_revenue_code
 from sped_mensal.writer import SpedWriter
 
 
@@ -35,6 +37,8 @@ def main(
     end_date: str = "2025-12-31",
     output_path: str | Path = "saida_sped_out_2025-12.txt",
     client_library: str | None = None,
+    output_encoding: str = "utf-8",
+    revenue_code: str | None = None,
 ) -> Path:
     """Emite o SPED pelo fluxo homologado do ERP São Pedro.
 
@@ -48,6 +52,7 @@ def main(
 
     # Carrega dados base
     company_info = extractor.get_company_info()
+    selected_revenue_code = resolve_e116_revenue_code(company_info, revenue_code)
     _log("[FAST] Empresa carregada")
     accountant_info = extractor.get_accountant_info()
     _log("[FAST] Contador carregado")
@@ -394,6 +399,7 @@ def main(
         start_date=start_date,
         end_date=end_date,
         log_fn=_log,
+        revenue_code=selected_revenue_code,
     )
     _log("[FAST] Montagem concluida")
 
@@ -846,7 +852,10 @@ def main(
     except Exception:
         mes_ref = ""
     cod_or = "000"
-    cod_rec = "1210"  # Rio Grande do Norte
+    cod_rec = selected_revenue_code
+    # O escritor compartilhado já pode fornecer E116. O fluxo homologado o
+    # substitui porque recalcula o saldo depois dos ajustes finais de C190.
+    non9 = [ln for ln in non9 if _code_of(ln) != "E116"]
     inserted_non9 = []
     for ln in non9:
         inserted_non9.append(ln)
@@ -1017,7 +1026,10 @@ def main(
     final_lines = fixed_final
 
     output_path = Path(output_path)
-    output_path.write_text("\n".join(final_lines) + "\n", encoding="utf-8")
+    output_path.write_text(
+        "\n".join(final_lines) + "\n",
+        encoding=normalize_output_encoding(output_encoding),
+    )
     _log(f"[FAST] Arquivo gerado em {output_path}")
     print(f"Arquivo SPED gerado com sucesso: {output_path}")
     return output_path
@@ -1035,8 +1047,26 @@ if __name__ == "__main__":
         "--fbclient",
         help="Caminho do fbclient.dll compatível com o Firebird e com este Python.",
     )
+    parser.add_argument(
+        "--encoding",
+        choices=SUPPORTED_OUTPUT_ENCODINGS,
+        default="utf-8",
+        help="Codificação do TXT de saída (default: utf-8).",
+    )
+    parser.add_argument(
+        "--revenue-code",
+        help="Código de receita do E116; se omitido, usa a empresa/UF quando configurada.",
+    )
     args = parser.parse_args()
-    main(args.database, args.start_date, args.end_date, args.output, args.fbclient)
+    main(
+        args.database,
+        args.start_date,
+        args.end_date,
+        args.output,
+        args.fbclient,
+        args.encoding,
+        args.revenue_code,
+    )
 
 
 

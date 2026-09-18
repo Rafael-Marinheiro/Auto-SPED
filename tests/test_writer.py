@@ -58,3 +58,13 @@ def test_control_register_counts():
     # total de registros 9900 deve corresponder ao valor informado para o próprio código 9900
     qtd_9900 = sum(1 for line in lines if line.startswith("|9900|"))
     assert counts["9900"]["9900"] == qtd_9900
+
+
+def test_writer_uses_the_selected_output_encoding(tmp_path):
+    writer = SpedWriter()
+    writer.to_string = lambda: "Razão Social"
+    destination = tmp_path / "sped.txt"
+
+    writer.write(destination, encoding="iso-8859-1")
+
+    assert destination.read_bytes() == "Razão Social".encode("iso-8859-1")

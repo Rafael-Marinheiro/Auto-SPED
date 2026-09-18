@@ -6,6 +6,9 @@ from dataclasses import dataclass
 from datetime import date
 from pathlib import Path
 
+from ..output_encoding import normalize_output_encoding
+from .revenue_code import normalize_revenue_code
+
 
 @dataclass(frozen=True)
 class GenerationRequest:
@@ -17,6 +20,8 @@ class GenerationRequest:
     end_date: date
     output_path: Path
     client_library: Path | None = None
+    output_encoding: str = "utf-8"
+    revenue_code: str | None = None
 
     def validate(self) -> None:
         if self.provider_id != "firebird-sao-pedro":
@@ -27,6 +32,9 @@ class GenerationRequest:
             raise ValueError("A data inicial não pode ser posterior à data final.")
         if self.client_library is not None and not self.client_library.is_file():
             raise FileNotFoundError(f"Biblioteca Firebird não encontrada: {self.client_library}")
+        normalize_output_encoding(self.output_encoding)
+        if self.revenue_code is not None:
+            normalize_revenue_code(self.revenue_code)
 
     @property
     def start_date_iso(self) -> str:
