@@ -84,3 +84,26 @@ texto.
 Antes de considerar um conector pronto para produção, valide amostras no PVA
 e reconcilie totais por documento, CFOP, CST e apuração. A aceitação pelo PVA
 não substitui a conferência fiscal da empresa.
+
+## Mapeamento declarativo simples
+
+Quando a integração só precisa renomear e normalizar colunas, use um JSON em vez
+de escrever código repetitivo. O arquivo
+[`product_mapping.json`](../examples/connectors/product_mapping.json) mostra o
+formato suportado:
+
+```python
+from sped_mensal.services import DeclarativeMapping
+
+mapping = DeclarativeMapping.from_json("product_mapping.json")
+products = mapping.map_rows("product", source_rows)
+```
+
+Cada campo informa `source`, uma lista opcional de `transforms`, `default` e
+`required`. As transformações disponíveis são `strip`, `upper`, `digits`,
+`access_key`, `municipality_code`, `cfop`, `cst`, `ncm`, `cest`, `item_type`,
+`tax_rate`, `date` e `money`.
+
+A configuração não executa Python ou SQL e rejeita transformações
+desconhecidas. Cálculos, relacionamentos complexos e decisões fiscais devem
+continuar em código testado no conector ou no núcleo apropriado.

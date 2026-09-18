@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "entities": {
+    "product": {
+      "COD_ITEM": {
+        "source": "codigo",
+        "transforms": ["strip"],
+        "required": true
+      },
+      "DESCR_ITEM": {
+        "source": "descricao",
+        "transforms": ["strip", "upper"],
+        "required": true
+      },
+      "UNID_INV": {
+        "source": "unidade",
+        "transforms": ["strip", "upper"],
+        "default": "UN"
+      },
+      "TIPO_ITEM": {
+        "source": "tipo",
+        "transforms": ["item_type"],
+        "default": "00"
+      },
+      "COD_NCM": {
+        "source": "ncm",
+        "transforms": ["ncm"]
+      },
+      "CEST": {
+        "source": "cest",
+        "transforms": ["cest"]
+      },
+      "ALIQ_ICMS": {
+        "source": "aliquota_icms",
+        "transforms": ["tax_rate"]
+      }
+    }
+  }
+}
