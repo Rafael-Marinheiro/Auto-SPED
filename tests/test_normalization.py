@@ -97,6 +97,18 @@ def test_parses_decimal_values_shared_by_legacy_adjustments():
     assert str(parse_sped_decimal("18.50")) == "18.50"
     assert str(parse_sped_decimal("inválido")) == "0"
     assert format_sped_decimal("1.234,5") == "1234,50"
+    assert format_sped_decimal("2,675") == "2,68"
+    assert format_sped_decimal("1,005") == "1,01"
+    assert format_sped_decimal("1,2345", decimal_places=3) == "1,235"
+
+
+def test_rejects_invalid_sped_decimal_scale():
+    try:
+        format_sped_decimal("1", decimal_places=-1)
+    except ValueError as exc:
+        assert "decimal_places" in str(exc)
+    else:
+        raise AssertionError("escala negativa deveria ser rejeitada")
 
 
 def test_normalizes_product_mapping_without_mutating_the_source():

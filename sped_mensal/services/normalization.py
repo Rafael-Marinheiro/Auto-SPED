@@ -217,8 +217,16 @@ def parse_sped_decimal(value: Any) -> Decimal:
         return Decimal("0")
 
 
-def format_sped_decimal(value: Any) -> str:
-    """Formata números com duas casas e vírgula como separador do SPED."""
+def format_sped_decimal(value: Any, decimal_places: int = 2) -> str:
+    """Formata número SPED sem milhar e com escala explícita.
 
-    numeric = float(parse_sped_decimal(value))
-    return f"{numeric:.2f}".replace(".", ",")
+    O leiaute define a quantidade máxima de casas por campo. Duas casas são o
+    padrão dos valores monetários e alíquotas tratados pelo fluxo legado; quem
+    formatar quantidades deve informar a escala prevista para o campo.
+    """
+
+    if decimal_places < 0:
+        raise ValueError("decimal_places deve ser maior ou igual a zero")
+    quantizer = Decimal(1).scaleb(-decimal_places)
+    decimal = parse_sped_decimal(value).quantize(quantizer, rounding=ROUND_HALF_UP)
+    return format(decimal, f".{decimal_places}f").replace(".", ",")
