@@ -116,7 +116,7 @@
 
 - [x] Publicar a licença MIT no repositório e nos metadados do pacote.
 - [x] Preparar texto, descrição curta e checklist de publicação no LinkedIn.
-- [x] Criar carrossel em PDF explicando problema, arquitetura, fluxo, segurança
-  e colaboração.
+- [x] Criar carrossel em PDF com gancho inicial e CTA final, explicando
+  problema, arquitetura, fluxo, segurança e colaboração.
 - [x] Revisar o material público para não expor dados fiscais reais.
 - [ ] Publicar a primeira release versionada com notas de versão.

@@ -151,7 +151,7 @@ def title(canvas: Canvas, kicker: str, heading: str, body: str = "") -> float:
 
 
 def page_cover(canvas: Canvas) -> None:
-    base_page(canvas, 1, "Portfólio")
+    base_page(canvas, 2, "Apresentação")
     canvas.setFillColor(TEAL)
     canvas.circle(485, 592, 88, fill=1, stroke=0)
     canvas.setFillColor(NAVY)
@@ -186,7 +186,7 @@ def page_cover(canvas: Canvas) -> None:
 
 
 def page_problem(canvas: Canvas) -> None:
-    base_page(canvas, 2, "Problema")
+    base_page(canvas, 3, "Problema")
     y = title(
         canvas,
         "O ponto de partida",
@@ -227,7 +227,7 @@ def flow_box(canvas: Canvas, x: float, y: float, width: float, label: str, note:
 
 
 def page_architecture(canvas: Canvas) -> None:
-    base_page(canvas, 3, "Arquitetura")
+    base_page(canvas, 4, "Arquitetura")
     title(
         canvas,
         "Separação de responsabilidades",
@@ -280,7 +280,7 @@ def mapping_row(canvas: Canvas, y: float, source: str, entity: str, target: str)
 
 
 def page_mapping(canvas: Canvas) -> None:
-    base_page(canvas, 4, "Mapa de captura")
+    base_page(canvas, 5, "Mapa de captura")
     title(
         canvas,
         "Rastreabilidade",
@@ -300,7 +300,7 @@ def page_mapping(canvas: Canvas) -> None:
 
 
 def page_validation(canvas: Canvas) -> None:
-    base_page(canvas, 5, "Validação")
+    base_page(canvas, 6, "Validação e segurança")
     y = title(
         canvas,
         "Antes do PVA",
@@ -326,41 +326,16 @@ def page_validation(canvas: Canvas) -> None:
         canvas.drawCentredString(x + 31, card_y + 86, number)
         draw_text(canvas, heading, x + 59, card_y + 98, 168, size=17, bold=True)
         draw_text(canvas, note, x + 18, card_y + 61, 210, size=13, color=MUTED, leading=17)
-
-
-def page_safety(canvas: Canvas) -> None:
-    base_page(canvas, 6, "Segurança")
-    title(
-        canvas,
-        "Correções controladas",
-        "ACID aplicado às alterações no banco.",
-        "O padrão é somente leitura. Qualquer escrita exige revisão e confirmação.",
-    )
-    steps = (
-        ("A", "Atomicidade", "Falhou? rollback de todo o plano."),
-        ("C", "Consistência", "Pré-condição e validação após a mudança."),
-        ("I", "Isolamento", "Uma operação por fonte e período."),
-        ("D", "Durabilidade", "Commit acompanhado de recibo e auditoria."),
-    )
-    y = 448
-    for letter, heading, note in steps:
-        canvas.setFillColor(TEAL)
-        canvas.circle(68, y + 20, 24, fill=1, stroke=0)
-        canvas.setFillColor(NAVY)
-        canvas.setFont(FONT_BOLD, 19)
-        canvas.drawCentredString(68, y + 13, letter)
-        draw_text(canvas, heading, 110, y + 34, 170, size=17, bold=True)
-        draw_text(canvas, note, 110, y + 8, 410, size=14, color=MUTED)
-        y -= 86
-    rounded_rect(canvas, 36, 71, 504, 72, NAVY_2, stroke=RED)
+    rounded_rect(canvas, 36, 72, 504, 78, NAVY_2, stroke=RED)
     draw_text(
         canvas,
-        "Nenhuma correção é aplicada automaticamente.",
+        "Somente leitura por padrão. Correções seguem ACID, confirmação explícita e auditoria.",
         58,
-        111,
+        119,
         460,
-        size=18,
+        size=16,
         bold=True,
+        leading=21,
     )
 
 
@@ -394,8 +369,8 @@ def page_quality(canvas: Canvas) -> None:
     draw_text(canvas, "Estude, adapte e crie seu conector.", 196, 117, 320, size=16, color=INK)
 
 
-def page_cta(canvas: Canvas) -> None:
-    base_page(canvas, 8, "Colaboração")
+def page_hook(canvas: Canvas) -> None:
+    base_page(canvas, 1, "Desafio")
     canvas.setFillColor(TEAL)
     canvas.circle(288, 575, 62, fill=1, stroke=0)
     canvas.setFillColor(NAVY)
@@ -422,10 +397,46 @@ def page_cta(canvas: Canvas) -> None:
         leading=28,
     )
     rounded_rect(canvas, 48, 191, 480, 92, TEAL)
-    draw_text(canvas, "github.com/Rafael-Marinheiro/Auto-SPED", 70, 245, 440, size=18, bold=True, color=NAVY)
-    draw_text(canvas, "Open source  |  MIT  |  Contribuições bem-vindas", 70, 214, 440, size=14, color=INK)
-    draw_text(canvas, "Rafael Marinheiro", 48, 122, 300, size=18, bold=True)
-    draw_text(canvas, "Python  -  Integração fiscal  -  Engenharia de software", 48, 91, 465, size=14, color=MUTED)
+    draw_text(canvas, "Conecte a fonte. Preserve o núcleo fiscal.", 70, 245, 440, size=18, bold=True, color=NAVY)
+    draw_text(canvas, "Firebird  |  PostgreSQL  |  XML  |  CSV", 70, 214, 440, size=14, color=INK)
+    draw_text(canvas, "Auto-SPED", 48, 122, 300, size=18, bold=True)
+    draw_text(canvas, "Arquitetura aberta para emissão EFD ICMS/IPI", 48, 91, 465, size=14, color=MUTED)
+
+
+def page_final(canvas: Canvas) -> None:
+    base_page(canvas, 8, "Colaboração")
+    canvas.setFont(FONT_BOLD, 13)
+    canvas.setFillColor(TEAL)
+    canvas.drawString(36, 657, "OPEN SOURCE")
+    draw_text(canvas, "Crie o conector do seu ERP.", 36, 608, 500, size=39, bold=True, leading=45)
+    draw_text(
+        canvas,
+        "Use o núcleo fiscal, adapte a captura e compartilhe melhorias com outros desenvolvedores.",
+        36,
+        502,
+        500,
+        size=19,
+        color=MUTED,
+        leading=27,
+    )
+    steps = (
+        ("1", "Implemente", "Traduza sua fonte para FiscalDataProvider."),
+        ("2", "Certifique", "Execute contrato, validações e testes de paridade."),
+        ("3", "Colabore", "Documente o mapa e contribua com a comunidade."),
+    )
+    y = 376
+    for number, heading, note in steps:
+        canvas.setFillColor(TEAL)
+        canvas.circle(62, y + 18, 20, fill=1, stroke=0)
+        canvas.setFillColor(NAVY)
+        canvas.setFont(FONT_BOLD, 13)
+        canvas.drawCentredString(62, y + 13, number)
+        draw_text(canvas, heading, 98, y + 30, 130, size=16, bold=True)
+        draw_text(canvas, note, 228, y + 29, 305, size=14, color=MUTED, leading=18)
+        y -= 79
+    rounded_rect(canvas, 36, 87, 504, 86, TEAL)
+    draw_text(canvas, "github.com/Rafael-Marinheiro/Auto-SPED", 58, 140, 460, size=19, bold=True, color=NAVY)
+    draw_text(canvas, "Licença MIT  |  Contribuições bem-vindas", 58, 108, 460, size=14, color=INK)
 
 
 def build() -> Path:
@@ -435,14 +446,14 @@ def build() -> Path:
     canvas.setAuthor("Rafael Marinheiro")
     canvas.setSubject("Portfólio de engenharia de software e integração fiscal")
     for page in (
+        page_hook,
         page_cover,
         page_problem,
         page_architecture,
         page_mapping,
         page_validation,
-        page_safety,
         page_quality,
-        page_cta,
+        page_final,
     ):
         page(canvas)
         canvas.showPage()
