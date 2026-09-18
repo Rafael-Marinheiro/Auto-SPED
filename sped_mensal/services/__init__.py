@@ -11,6 +11,12 @@ from .corrections import (
 )
 from .generation import GenerationResult, generate_sped
 from .declarative_mapping import DeclarativeMapping, FieldRule, TRANSFORMS
+from .provider_certification import (
+    CertificationFinding,
+    CertificationReport,
+    assert_provider_certified,
+    certify_provider,
+)
 from .normalization import (
     digits_only,
     format_sped_decimal,
@@ -43,6 +49,7 @@ __all__ = [
     "CaptureSummary", "build_capture_summary", "CorrectionConfirmationError",
     "CorrectionPlan", "CorrectionProposal", "CorrectionReceipt", "apply_confirmed_plan", "apply_confirmed_plan_with_audit",
     "GenerationResult", "generate_sped", "DeclarativeMapping", "FieldRule", "TRANSFORMS",
+    "CertificationFinding", "CertificationReport", "certify_provider", "assert_provider_certified",
     "digits_only", "format_sped_decimal", "normalize_access_key",
     "normalize_cest", "normalize_cfop", "normalize_cst",
     "normalize_document_status", "normalize_sped_date", "format_sped_money",
