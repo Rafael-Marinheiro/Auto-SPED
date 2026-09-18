@@ -61,6 +61,7 @@ escritor do SPED. O primeiro exemplo é `FirebirdSaoPedroProvider`, que document
 a captura das tabelas do ERP atual.
 
 - [Arquitetura e mapa de captura](docs/ARCHITECTURE.md)
+- [Guia e projeto-base para novos conectores](docs/CONNECTOR_GUIDE.md)
 - [Backlog priorizado](docs/BACKLOG.md)
 - [Cliente Firebird e downloads oficiais](docs/FIREBIRD_SETUP.md)
 

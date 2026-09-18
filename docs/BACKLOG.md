@@ -82,7 +82,7 @@
 
 ## Fase 4 — Ecossistema de conectores (quinta)
 
-- [ ] Publicar guia e projeto-base para novos capturadores.
+- [x] Publicar guia e projeto-base para novos capturadores.
 - [ ] Suportar configuração declarativa para mapeamentos simples.
 - [ ] Criar adaptadores de referência para PostgreSQL e importação de XML/CSV.
 - [ ] Criar suíte de certificação para conectores de terceiros.
