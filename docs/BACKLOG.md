@@ -94,6 +94,8 @@
   - [ ] Incluir gradualmente `main_fast.py`, `database.py`, `writer.py` e desktop
     nas checagens estritas, mantendo os testes de paridade.
 - [x] Automatizar a suíte de testes no GitHub Actions.
-- [ ] Empacotar aplicativo Windows e instalador.
+- [x] Empacotar aplicativo Windows e instalador.
+  - [x] Automatizar pasta portátil e instalador por usuário no GitHub Actions.
+  - [ ] Assinar executável e instalador com certificado de assinatura de código.
 - [ ] Versionar alterações de layout e regras fiscais.
 - [ ] Publicar documentação de implantação, segurança e solução de problemas.

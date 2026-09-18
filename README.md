@@ -64,6 +64,7 @@ a captura das tabelas do ERP atual.
 - [Guia e projeto-base para novos conectores](docs/CONNECTOR_GUIDE.md)
 - [Adaptadores de referência: PostgreSQL, XML e CSV](docs/REFERENCE_CONNECTORS.md)
 - [Suíte de certificação de conectores](docs/CONNECTOR_CERTIFICATION.md)
+- [Build e instalador para Windows](docs/WINDOWS_DISTRIBUTION.md)
 - [Backlog priorizado](docs/BACKLOG.md)
 - [Cliente Firebird e downloads oficiais](docs/FIREBIRD_SETUP.md)
 
