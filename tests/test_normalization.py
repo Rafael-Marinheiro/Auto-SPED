@@ -7,6 +7,8 @@ from sped_mensal.services.normalization import (
     normalize_municipality_code,
     normalize_ncm,
     normalize_person_ids,
+    parse_fiscal_date,
+    parse_sped_decimal,
     normalize_tax_rate,
     normalize_tipo_item,
     normalize_sped_date,
@@ -78,3 +80,15 @@ def test_formats_sped_money_with_brazilian_input_and_two_decimals():
     assert format_sped_money("1.234,565") == "1234.57"
     assert format_sped_money(None) == "0.00"
     assert format_sped_money("inválido") == "0.00"
+
+
+def test_parses_fiscal_dates_for_period_comparison():
+    assert parse_fiscal_date("2026-09-17").isoformat() == "2026-09-17"
+    assert parse_fiscal_date("17092026").isoformat() == "2026-09-17"
+    assert parse_fiscal_date("inválida") is None
+
+
+def test_parses_decimal_values_shared_by_legacy_adjustments():
+    assert str(parse_sped_decimal("1.234,56")) == "1234.56"
+    assert str(parse_sped_decimal("18.50")) == "18.50"
+    assert str(parse_sped_decimal("inválido")) == "0"

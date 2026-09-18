@@ -13,7 +13,10 @@ from sped_mensal.services.normalization import (
     normalize_cest,
     normalize_cfop,
     normalize_cst,
+    normalize_document_status,
     normalize_ncm,
+    parse_fiscal_date,
+    parse_sped_decimal,
     normalize_tax_rate,
     normalize_tipo_item,
 )
@@ -62,7 +65,6 @@ def main(
     # NormalizaÃ§Ãµes do 0200: trim de descriÃ§Ã£o; TIPO_ITEM (2 dÃ­gitos);
     # NCM (8 dÃ­gitos ou branco); CEST (7 dÃ­gitos ou branco); UNID_INV trim;
     # ALIQ_ICMS com atÃ© 2 casas decimais.
-    from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
     _digits = digits_only
     _norm_tipo_item = normalize_tipo_item
     _norm_ncm = normalize_ncm
@@ -90,22 +92,10 @@ def main(
     invoices = extractor.get_invoices(start_date, end_date)
     _log(f"[FAST] Notas: {len(invoices)}")
 
-    # Normaliza situacao e remove inutilizadas
-    def _map_cod_sit(raw: str) -> str:
-        s = "" if raw is None else str(raw).strip().upper()
-        if s in {"00", "01", "02", "03", "04", "05", "06", "07", "08"}:
-            return s
-        if s.startswith("INUTIL") or s in {"I", "INUTILIZADA", "INUTILIZADO"}:
-            return "05"
-        if s in {"C", "CANC", "CANCEL", "CANCELADA", "CANCELADO"}:
-            return "02"
-        if s.startswith("DENEG") or s in {"D", "DEN", "DENEGADA", "DENEGADO"}:
-            return "04"
-        return "00"
-
+    # Normaliza situação e remove inutilizadas.
     filtered_invoices = []
     for inv in invoices:
-        cod_sit = _map_cod_sit(inv.get("COD_SIT", ""))
+        cod_sit = normalize_document_status(inv.get("COD_SIT", ""))
         if cod_sit == "05":
             continue
         inv["COD_SIT"] = cod_sit
@@ -120,17 +110,17 @@ def main(
 
     # Remove notas de compra (entrada) com DT_E_S maior que a data final do 0000
     from datetime import datetime
-    def _parse_dt(v: str):
-        s = "" if v is None else str(v).strip()
-        for fmt in ("%d%m%Y", "%Y-%m-%d", "%Y%m%d", "%d/%m/%Y"):
-            try:
-                return datetime.strptime(s, fmt)
-            except Exception:
-                continue
-        return None
-    end_dt_0000 = _parse_dt(end_date)
+    end_dt_0000 = parse_fiscal_date(end_date)
     if end_dt_0000:
-        filtered_invoices = [inv for inv in filtered_invoices if not (str(inv.get("IND_OPER", "")).strip() == "0" and _parse_dt(inv.get("DT_E_S", "")) is not None and _parse_dt(inv.get("DT_E_S", "")) > end_dt_0000)]
+        filtered_invoices = [
+            inv
+            for inv in filtered_invoices
+            if not (
+                str(inv.get("IND_OPER", "")).strip() == "0"
+                and (entry_date := parse_fiscal_date(inv.get("DT_E_S", ""))) is not None
+                and entry_date > end_dt_0000
+            )
+        ]
 
     # Mantem apenas participantes usados em C100 (exceto NFC-e 65) e somente notas regulares (00/01)
     used_parts = {
@@ -339,35 +329,15 @@ def main(
                     except Exception:
                         continue
                 # Cálculo da alíquota (quando houver base > 0)
-                def _parse_float(v) -> float:
-                    t = "0" if v is None else str(v).strip()
-                    if "," in t and "." in t:
-                        t = t.replace(".", "").replace(",", ".")
-                    elif "," in t:
-                        t = t.replace(",", ".")
-                    # caso contrário, assume ponto como decimal
-                    try:
-                        return float(t)
-                    except Exception:
-                        return 0.0
                 if target is not None:
-                    bc = _parse_float(target.get("_ORIG_VL_BC_ICMS", target.get("VL_BC_ICMS", 0)))
-                    icms = _parse_float(target.get("_ORIG_VL_ICMS", target.get("VL_ICMS", 0)))
-                    vl_opr = _parse_float(target.get("VL_DOC", 0))
+                    bc = float(parse_sped_decimal(target.get("_ORIG_VL_BC_ICMS", target.get("VL_BC_ICMS", 0))))
+                    icms = float(parse_sped_decimal(target.get("_ORIG_VL_ICMS", target.get("VL_ICMS", 0))))
+                    vl_opr = float(parse_sped_decimal(target.get("VL_DOC", 0)))
                 else:
-                    bc = _parse_float(ctx.get("VL_BC_ICMS", "0"))
-                    icms = _parse_float(ctx.get("VL_ICMS", "0"))
-                    vl_opr = _parse_float(ctx.get("VL_OPR", "0"))
+                    bc = float(parse_sped_decimal(ctx.get("VL_BC_ICMS", "0")))
+                    icms = float(parse_sped_decimal(ctx.get("VL_ICMS", "0")))
+                    vl_opr = float(parse_sped_decimal(ctx.get("VL_OPR", "0")))
                 aliq = (icms / bc * 100.0) if bc > 0 else 0.0
-                # Normaliza valores numéricos em string (mantém ponto como decimal; writer converte para vírgula)
-                def _num(s: str) -> str:
-                    t = "" if s is None else str(s).strip()
-                    if "," in t and "." in t:
-                        return t.replace(".", "").replace(",", ".")
-                    if "," in t:
-                        return t.replace(",", ".")
-                    return t
-
                 new_data = {
                     "CST_ICMS": "000",
                     "CFOP": cfop,
@@ -428,17 +398,8 @@ def main(
         return "|".join(parts)
 
     # Soma VL_ICMS dos C190 por natureza (entrada x saÃ­da)
-    def _parse_decimal(s: str) -> float:
-        t = "0" if s is None else str(s)
-        t = t.strip()
-        if "," in t and "." in t:
-            t = t.replace(".", "").replace(",", ".")
-        else:
-            t = t.replace(",", ".")
-        try:
-            return float(t)
-        except Exception:
-            return 0.0
+    def _parse_decimal(value) -> float:
+        return float(parse_sped_decimal(value))
 
     total_debitos = 0.0
     total_creditos = 0.0

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 
@@ -105,6 +105,22 @@ def normalize_sped_date(value: Any) -> str:
     return raw.replace("-", "")
 
 
+def parse_fiscal_date(value: Any) -> date | None:
+    """Converte datas aceitas pelo legado para comparação de períodos."""
+
+    if isinstance(value, datetime):
+        return value.date()
+    if isinstance(value, date):
+        return value
+    raw = "" if value is None else str(value).strip()
+    for date_format in ("%d%m%Y", "%Y-%m-%d", "%Y%m%d", "%d/%m/%Y"):
+        try:
+            return datetime.strptime(raw, date_format).date()
+        except ValueError:
+            continue
+    return None
+
+
 def normalize_document_status(value: Any) -> str:
     """Mapeia situações do ERP para o COD_SIT do documento fiscal."""
 
@@ -136,3 +152,19 @@ def format_sped_money(value: Any) -> str:
         except InvalidOperation:
             decimal = Decimal("0")
     return str(decimal.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+
+
+def parse_sped_decimal(value: Any) -> Decimal:
+    """Interpreta números do ERP com separador brasileiro ou internacional."""
+
+    if isinstance(value, Decimal):
+        return value
+    raw = "0" if value is None else str(value).strip() or "0"
+    if "," in raw and "." in raw:
+        raw = raw.replace(".", "").replace(",", ".")
+    elif "," in raw:
+        raw = raw.replace(",", ".")
+    try:
+        return Decimal(raw)
+    except InvalidOperation:
+        return Decimal("0")

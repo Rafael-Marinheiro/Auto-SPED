@@ -22,6 +22,8 @@ from .normalization import (
     normalize_municipality_code,
     normalize_ncm,
     normalize_person_ids,
+    parse_fiscal_date,
+    parse_sped_decimal,
     normalize_tax_rate,
     normalize_tipo_item,
 )
@@ -39,6 +41,7 @@ __all__ = [
     "normalize_cest", "normalize_cfop", "normalize_cst",
     "normalize_document_status", "normalize_sped_date", "format_sped_money",
     "normalize_municipality_code", "normalize_ncm", "normalize_person_ids",
+    "parse_fiscal_date", "parse_sped_decimal",
     "normalize_tax_rate", "normalize_tipo_item",
     "STATE_REVENUE_CODE_RULES", "StateRevenueCodeRule",
     "normalize_revenue_code", "resolve_e116_revenue_code",
