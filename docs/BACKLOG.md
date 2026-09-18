@@ -84,7 +84,7 @@
 
 - [x] Publicar guia e projeto-base para novos capturadores.
 - [x] Suportar configuração declarativa para mapeamentos simples.
-- [ ] Criar adaptadores de referência para PostgreSQL e importação de XML/CSV.
+- [x] Criar adaptadores de referência para PostgreSQL e importação de XML/CSV.
 - [ ] Criar suíte de certificação para conectores de terceiros.
 
 ## Fase 5 — Distribuição e qualidade (sexta)

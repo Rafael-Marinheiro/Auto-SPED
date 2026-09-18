@@ -62,6 +62,7 @@ a captura das tabelas do ERP atual.
 
 - [Arquitetura e mapa de captura](docs/ARCHITECTURE.md)
 - [Guia e projeto-base para novos conectores](docs/CONNECTOR_GUIDE.md)
+- [Adaptadores de referência: PostgreSQL, XML e CSV](docs/REFERENCE_CONNECTORS.md)
 - [Backlog priorizado](docs/BACKLOG.md)
 - [Cliente Firebird e downloads oficiais](docs/FIREBIRD_SETUP.md)
 
