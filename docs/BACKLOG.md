@@ -33,6 +33,8 @@
   - [x] Centralizar datas SPED, situação documental e formatação monetária.
   - [x] Remover do fluxo legado os parsers duplicados de situação, data e valor,
     reutilizando as normalizações compartilhadas com testes de paridade.
+  - [x] Centralizar a normalização de produtos e itens (NCM, CEST, CFOP,
+    CST de ICMS e CST de IPI) e reutilizá-la no fluxo legado.
 - [x] Centralizar normalizações de CST, CFOP, NCM, CEST, tipo de item e alíquota.
 - [x] Criar modelos tipados para empresa, documento, item e tributos.
 - [x] Criar resumo tipado da captura para a futura interface.

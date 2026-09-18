@@ -9,16 +9,11 @@ import argparse
 from sped_mensal.database import SpedDataExtractor
 from sped_mensal.output_encoding import SUPPORTED_OUTPUT_ENCODINGS, normalize_output_encoding
 from sped_mensal.services.normalization import (
-    digits_only,
-    normalize_cest,
-    normalize_cfop,
-    normalize_cst,
     normalize_document_status,
-    normalize_ncm,
+    normalize_fiscal_item_mapping,
+    normalize_product_mapping,
     parse_fiscal_date,
     parse_sped_decimal,
-    normalize_tax_rate,
-    normalize_tipo_item,
 )
 from sped_mensal.services.revenue_code import resolve_e116_revenue_code
 from sped_mensal.writer import SpedWriter
@@ -65,27 +60,13 @@ def main(
     # NormalizaÃ§Ãµes do 0200: trim de descriÃ§Ã£o; TIPO_ITEM (2 dÃ­gitos);
     # NCM (8 dÃ­gitos ou branco); CEST (7 dÃ­gitos ou branco); UNID_INV trim;
     # ALIQ_ICMS com atÃ© 2 casas decimais.
-    _digits = digits_only
-    _norm_tipo_item = normalize_tipo_item
-    _norm_ncm = normalize_ncm
-    _norm_cest = normalize_cest
-    _norm_aliq = normalize_tax_rate
-    for p in products:
+    normalized_products = []
+    for product in products:
         try:
-            if "DESCR_ITEM" in p:
-                p["DESCR_ITEM"] = str(p["DESCR_ITEM"]).strip()
-            if "UNID_INV" in p:
-                p["UNID_INV"] = str(p["UNID_INV"]).strip()
-            if "TIPO_ITEM" in p:
-                p["TIPO_ITEM"] = _norm_tipo_item(p.get("TIPO_ITEM", ""))
-            if "COD_NCM" in p:
-                p["COD_NCM"] = _norm_ncm(p.get("COD_NCM", ""))
-            if "CEST" in p:
-                p["CEST"] = _norm_cest(p.get("CEST", ""))
-            if "ALIQ_ICMS" in p:
-                p["ALIQ_ICMS"] = _norm_aliq(p.get("ALIQ_ICMS", ""))
+            normalized_products.append(normalize_product_mapping(product))
         except Exception:
-            pass
+            normalized_products.append(product)
+    products = normalized_products
     _log(f"[FAST] Produtos: {len(products)}")
     units = extractor.get_units()
     _log(f"[FAST] Unidades: {len(units)}")
@@ -199,11 +180,6 @@ def main(
         units = [{"UNID": u, "DESCR": "UNIDADE"} for u in units]
 
     # Monkey patches para evitar consultas desnecessarias em NFC-e (65)
-    # UtilitÃ¡rios de normalizaÃ§Ã£o (CFOP=4 dÃ­gitos, CST=3 dÃ­gitos)
-    _digits_only = digits_only
-    _norm_cfop = normalize_cfop
-    _norm_cst3 = normalize_cst
-
     if hasattr(extractor, "get_invoice_items_by_ids"):
         _orig_get_items = extractor.get_invoice_items_by_ids
 
@@ -212,31 +188,13 @@ def main(
             if str(cod_mod).strip() == "65":
                 return []
             items = _orig_get_items(cod_mod, doc_id, venda_id, ind_oper, origem)
-            # Normaliza CFOP e CST_ICMS nos itens para atender ao leiaute
-            for it in items:
+            normalized_items = []
+            for item in items:
                 try:
-                    it["CFOP"] = _norm_cfop(it.get("CFOP", ""))
+                    normalized_items.append(normalize_fiscal_item_mapping(item))
                 except Exception:
-                    pass
-                try:
-                    it["CST_ICMS"] = _norm_cst3(it.get("CST_ICMS", ""))
-                except Exception:
-                    pass
-                # Ajusta CST_IPI conforme CFOP: entradas (1/2/3) < 50; saÃ­das (5/6/7) >= 97
-                try:
-                    cfop = str(it.get("CFOP", "")).strip()
-                    cst_ipi_raw = _digits_only(it.get("CST_IPI", ""))
-                    cst_ipi = int(cst_ipi_raw) if cst_ipi_raw else None
-                    if cfop and cst_ipi is not None:
-                        if cfop[0] in {"1", "2", "3"} and cst_ipi >= 50:
-                            it["CST_IPI"] = "00"
-                        elif cfop[0] in {"5", "6", "7"} and cst_ipi < 97:
-                            it["CST_IPI"] = "99"
-                        else:
-                            it["CST_IPI"] = str(cst_ipi).zfill(2)
-                except Exception:
-                    pass
-            return items
+                    normalized_items.append(item)
+            return normalized_items
 
         extractor.get_invoice_items_by_ids = _fast_get_items  # type: ignore
 

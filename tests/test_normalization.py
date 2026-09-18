@@ -13,6 +13,9 @@ from sped_mensal.services.normalization import (
     normalize_tipo_item,
     normalize_sped_date,
     normalize_document_status,
+    normalize_fiscal_item_mapping,
+    normalize_ipi_cst,
+    normalize_product_mapping,
     format_sped_money,
 )
 
@@ -92,3 +95,40 @@ def test_parses_decimal_values_shared_by_legacy_adjustments():
     assert str(parse_sped_decimal("1.234,56")) == "1234.56"
     assert str(parse_sped_decimal("18.50")) == "18.50"
     assert str(parse_sped_decimal("inválido")) == "0"
+
+
+def test_normalizes_product_mapping_without_mutating_the_source():
+    source = {
+        "COD_ITEM": "1",
+        "DESCR_ITEM": " PRODUTO ",
+        "UNID_INV": " UN ",
+        "TIPO_ITEM": "0",
+        "COD_NCM": "2202.10.00",
+        "CEST": "03.012.34",
+        "ALIQ_ICMS": "18,5",
+    }
+
+    normalized = normalize_product_mapping(source)
+
+    assert normalized == {
+        "COD_ITEM": "1",
+        "DESCR_ITEM": "PRODUTO",
+        "UNID_INV": "UN",
+        "TIPO_ITEM": "00",
+        "COD_NCM": "22021000",
+        "CEST": "0301234",
+        "ALIQ_ICMS": "18.50",
+    }
+    assert source["DESCR_ITEM"] == " PRODUTO "
+
+
+def test_normalizes_item_codes_and_ipi_direction_rule():
+    source = {"CFOP": "5102", "CST_ICMS": "60", "CST_IPI": "50"}
+
+    normalized = normalize_fiscal_item_mapping(source)
+
+    assert normalized["CFOP"] == "5102"
+    assert normalized["CST_ICMS"] == "060"
+    assert normalized["CST_IPI"] == "99"
+    assert normalize_ipi_cst("99", "1102") == "00"
+    assert normalize_ipi_cst("", "5102") is None

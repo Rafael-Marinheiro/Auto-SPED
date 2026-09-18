@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from datetime import date, datetime
+from collections.abc import Mapping
 from typing import Any
 
 
@@ -152,6 +153,52 @@ def format_sped_money(value: Any) -> str:
         except InvalidOperation:
             decimal = Decimal("0")
     return str(decimal.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP))
+
+
+def normalize_product_mapping(product: Mapping[str, Any]) -> dict[str, Any]:
+    """Normaliza os campos do registro 0200 sem depender do ERP de origem."""
+
+    normalized = dict(product)
+    if "DESCR_ITEM" in normalized:
+        normalized["DESCR_ITEM"] = str(normalized["DESCR_ITEM"]).strip()
+    if "UNID_INV" in normalized:
+        normalized["UNID_INV"] = str(normalized["UNID_INV"]).strip()
+    if "TIPO_ITEM" in normalized:
+        normalized["TIPO_ITEM"] = normalize_tipo_item(normalized.get("TIPO_ITEM"))
+    if "COD_NCM" in normalized:
+        normalized["COD_NCM"] = normalize_ncm(normalized.get("COD_NCM"))
+    if "CEST" in normalized:
+        normalized["CEST"] = normalize_cest(normalized.get("CEST"))
+    if "ALIQ_ICMS" in normalized:
+        normalized["ALIQ_ICMS"] = normalize_tax_rate(normalized.get("ALIQ_ICMS"))
+    return normalized
+
+
+def normalize_ipi_cst(value: Any, cfop: Any) -> str | None:
+    """Aplica a regra homologada de CST de IPI conforme entrada ou saída."""
+
+    digits = digits_only(value)
+    if not digits:
+        return None
+    normalized_cfop = normalize_cfop(cfop)
+    numeric_cst = int(digits)
+    if normalized_cfop.startswith(("1", "2", "3")) and numeric_cst >= 50:
+        return "00"
+    if normalized_cfop.startswith(("5", "6", "7")) and numeric_cst < 97:
+        return "99"
+    return str(numeric_cst).zfill(2)
+
+
+def normalize_fiscal_item_mapping(item: Mapping[str, Any]) -> dict[str, Any]:
+    """Normaliza códigos fiscais do item preservando valores e campos extras."""
+
+    normalized = dict(item)
+    normalized["CFOP"] = normalize_cfop(normalized.get("CFOP"))
+    normalized["CST_ICMS"] = normalize_cst(normalized.get("CST_ICMS"))
+    cst_ipi = normalize_ipi_cst(normalized.get("CST_IPI"), normalized["CFOP"])
+    if cst_ipi is not None:
+        normalized["CST_IPI"] = cst_ipi
+    return normalized
 
 
 def parse_sped_decimal(value: Any) -> Decimal:
