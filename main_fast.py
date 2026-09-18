@@ -9,6 +9,7 @@ import argparse
 from sped_mensal.database import SpedDataExtractor
 from sped_mensal.output_encoding import SUPPORTED_OUTPUT_ENCODINGS, normalize_output_encoding
 from sped_mensal.services.normalization import (
+    format_sped_decimal,
     normalize_document_status,
     normalize_fiscal_item_mapping,
     normalize_product_mapping,
@@ -429,9 +430,6 @@ def main(
         if str(p.get("COD_ITEM", "")).strip()
     }
 
-    def _fmt_num(x: float) -> str:
-        return f"{x:.2f}".replace(".", ",")
-
     dedup_non9: list[str] = []
     i = 0
     while i < len(non9):
@@ -464,9 +462,9 @@ def main(
                         parts[6] = target_unit
                     cst_val = parts[10].strip()
                     if cst_val in {"040", "041", "050", "051"}:
-                        parts[13] = _fmt_num(0.0)
+                        parts[13] = format_sped_decimal(0.0)
                         parts[14] = ""
-                        parts[15] = _fmt_num(0.0)
+                        parts[15] = format_sped_decimal(0.0)
                     bl = _join_fields(parts)
                     parts = _split_fields(bl)
                 except Exception:
@@ -511,7 +509,7 @@ def main(
                             aliq_val = (vl_icms / vl_bc) * 100.0
                         else:
                             aliq_val = _parse_decimal(aliq_raw)
-                        aliq_str = _fmt_num(aliq_val)
+                        aliq_str = format_sped_decimal(aliq_val)
                     key = (cst, cfop, aliq_str)
                     if key not in accum:
                         order.append(key)
@@ -544,13 +542,13 @@ def main(
                     data["cst"],
                     data["cfop"],
                     aliq_out,
-                    _fmt_num(float(data["vl_opr"])),
-                    _fmt_num(float(data["vl_bc"])),
-                    _fmt_num(float(data["vl_icms"])),
-                    _fmt_num(float(data["vl_bc_st"])),
-                    _fmt_num(float(data["vl_icms_st"])),
-                    _fmt_num(float(data["vl_red_bc"])),
-                    _fmt_num(float(data["vl_ipi"])),
+                    format_sped_decimal(float(data["vl_opr"])),
+                    format_sped_decimal(float(data["vl_bc"])),
+                    format_sped_decimal(float(data["vl_icms"])),
+                    format_sped_decimal(float(data["vl_bc_st"])),
+                    format_sped_decimal(float(data["vl_icms_st"])),
+                    format_sped_decimal(float(data["vl_red_bc"])),
+                    format_sped_decimal(float(data["vl_ipi"])),
                     data["cod_obs"],
                 ]
                 # Mantém aliq em branco quando aplicável (cst sem ICMS)
@@ -567,7 +565,7 @@ def main(
                     continue
                 cst = parts[2].strip()
                 cfop = parts[3].strip()
-                aliq_key = _fmt_num(_parse_decimal(parts[4]))
+                aliq_key = format_sped_decimal(_parse_decimal(parts[4]))
                 key = (cst, cfop, aliq_key)
                 if key not in accum:
                     order.append(key)
@@ -598,13 +596,13 @@ def main(
                     data["cst"],
                     data["cfop"],
                     data["aliq"],
-                    _fmt_num(float(data["vl_opr"])),
-                    _fmt_num(float(data["vl_bc"])),
-                    _fmt_num(float(data["vl_icms"])),
-                    _fmt_num(float(data["vl_bc_st"])),
-                    _fmt_num(float(data["vl_icms_st"])),
-                    _fmt_num(float(data["vl_red_bc"])),
-                    _fmt_num(float(data["vl_ipi"])),
+                    format_sped_decimal(float(data["vl_opr"])),
+                    format_sped_decimal(float(data["vl_bc"])),
+                    format_sped_decimal(float(data["vl_icms"])),
+                    format_sped_decimal(float(data["vl_bc_st"])),
+                    format_sped_decimal(float(data["vl_icms_st"])),
+                    format_sped_decimal(float(data["vl_red_bc"])),
+                    format_sped_decimal(float(data["vl_ipi"])),
                     data["cod_obs"],
                 ]
                 dedup_non9.append("|C190|" + "|".join(vals) + "|")
@@ -621,7 +619,7 @@ def main(
                 vl_opr = _parse_decimal(parts[5]) if len(parts) > 5 else 0.0
                 vl_bc = _parse_decimal(parts[6]) if len(parts) > 6 else 0.0
                 if vl_bc > 0 and vl_opr < vl_bc:
-                    parts[5] = _fmt_num(vl_bc)
+                    parts[5] = format_sped_decimal(vl_bc)
                     ln = _join_fields(parts)
             except Exception:
                 pass
@@ -629,9 +627,6 @@ def main(
     non9 = fixed_non9
 
     # Ajusta C100 para que VL_ICMS (e opcionalmente VL_BC_ICMS) iguale a soma dos C190 do documento
-    def _fmt2(x: float) -> str:
-        return f"{x:.2f}".replace('.', ',')
-
     adjusted_icms_non9: list[str] = []
     i = 0
     while i < len(non9):
@@ -672,18 +667,18 @@ def main(
                 cod_mod = parts[5] if len(parts) > 5 else ""
                 if cod_sit in {"00", "01"}:
                     # 21: VL_BC_ICMS, 22: VL_ICMS
-                    parts[21] = _fmt2(sum_bc)
+                    parts[21] = format_sped_decimal(sum_bc)
                     icms_total = sum_icms_c170 if has_c170 else sum_icms_c190
                     if has_c170 and icms_total == 0.0 and sum_icms_c190 > 0.0:
                         icms_total = sum_icms_c190
-                    parts[22] = _fmt2(icms_total)
+                    parts[22] = format_sped_decimal(icms_total)
                     # 16: VL_MERC deve cobrir a soma dos VL_ITEM dos C170 quando existirem
                     try:
                         current_vl_merc = _parse_decimal(parts[16]) if len(parts) > 16 else 0.0
                     except Exception:
                         current_vl_merc = 0.0
                     if has_c170 and sum_vl_item_c170 > 0.0:
-                        parts[16] = _fmt2(max(current_vl_merc, sum_vl_item_c170))
+                        parts[16] = format_sped_decimal(max(current_vl_merc, sum_vl_item_c170))
                     # 25: VL_IPI (na definição: índice 23, mas aqui por ordem com campo final vazio)
                     if cod_mod == "65":
                         # NFC-e: limpar campos vetados (COD_PART, ST/IPI/PIS/COFINS/PIS_ST/COFINS_ST)
@@ -693,7 +688,7 @@ def main(
                             if len(parts) > idx_vetado:
                                 parts[idx_vetado] = ""
                     else:
-                        parts[25] = _fmt2(sum_ipi)
+                        parts[25] = format_sped_decimal(sum_ipi)
                 else:
                     # Cancelada/denegada: manter apenas campos essenciais, limpar valores monetários
                     keep_indices = {1, 2, 3, 5, 6, 7, 8, 9}
@@ -734,23 +729,21 @@ def main(
         code = _code_of(ln)
         if code == "E110":
             try:
-                def fmt(x: float) -> str:
-                    return (f"{x:.2f}").replace('.', ',')
-                fields = [fmt(0.0)] * 14
-                fields[0] = fmt(total_debitos)
-                fields[1] = fmt(0.0)
-                fields[2] = fmt(0.0)
-                fields[3] = fmt(0.0)
-                fields[4] = fmt(total_creditos)
-                fields[5] = fmt(0.0)
-                fields[6] = fmt(0.0)
-                fields[7] = fmt(0.0)
-                fields[8] = fmt(0.0)
-                fields[9] = fmt(sld_ap_total)
-                fields[10] = fmt(0.0)
-                fields[11] = fmt(sld_ap_total)
-                fields[12] = fmt(max(total_creditos - total_debitos, 0.0))
-                fields[13] = fmt(0.0)
+                fields = [format_sped_decimal(0.0)] * 14
+                fields[0] = format_sped_decimal(total_debitos)
+                fields[1] = format_sped_decimal(0.0)
+                fields[2] = format_sped_decimal(0.0)
+                fields[3] = format_sped_decimal(0.0)
+                fields[4] = format_sped_decimal(total_creditos)
+                fields[5] = format_sped_decimal(0.0)
+                fields[6] = format_sped_decimal(0.0)
+                fields[7] = format_sped_decimal(0.0)
+                fields[8] = format_sped_decimal(0.0)
+                fields[9] = format_sped_decimal(sld_ap_total)
+                fields[10] = format_sped_decimal(0.0)
+                fields[11] = format_sped_decimal(sld_ap_total)
+                fields[12] = format_sped_decimal(max(total_creditos - total_debitos, 0.0))
+                fields[13] = format_sped_decimal(0.0)
                 ln = "|E110|" + "|".join(fields) + "|"
             except Exception:
                 pass
@@ -779,7 +772,7 @@ def main(
     for ln in non9:
         inserted_non9.append(ln)
         if _code_of(ln) == "E110":
-            vl_or = (f"{sld_ap_total:.2f}").replace('.', ',')
+            vl_or = format_sped_decimal(sld_ap_total)
             e116_fields = [
                 cod_or,
                 vl_or,

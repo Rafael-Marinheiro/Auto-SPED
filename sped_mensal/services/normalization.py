@@ -215,3 +215,10 @@ def parse_sped_decimal(value: Any) -> Decimal:
         return Decimal(raw)
     except InvalidOperation:
         return Decimal("0")
+
+
+def format_sped_decimal(value: Any) -> str:
+    """Formata números com duas casas e vírgula como separador do SPED."""
+
+    numeric = float(parse_sped_decimal(value))
+    return f"{numeric:.2f}".replace(".", ",")

@@ -28,13 +28,15 @@
 - [x] Parametrizar o fluxo mensal homologado por banco, período e saída.
 - [x] Permitir selecionar o cliente Firebird (`fbclient`) por emissão e documentar
   compatibilidade de versão e arquitetura.
-- [ ] Extrair, por partes, as normalizações homologadas de `main_fast.py` para
+- [x] Extrair, por partes, as normalizações homologadas de `main_fast.py` para
   serviços testáveis.
   - [x] Centralizar datas SPED, situação documental e formatação monetária.
   - [x] Remover do fluxo legado os parsers duplicados de situação, data e valor,
     reutilizando as normalizações compartilhadas com testes de paridade.
   - [x] Centralizar a normalização de produtos e itens (NCM, CEST, CFOP,
     CST de ICMS e CST de IPI) e reutilizá-la no fluxo legado.
+  - [x] Centralizar a formatação decimal usada no pós-processamento de C100,
+    C170, C190, E110 e E116.
 - [x] Centralizar normalizações de CST, CFOP, NCM, CEST, tipo de item e alíquota.
 - [x] Criar modelos tipados para empresa, documento, item e tributos.
 - [x] Criar resumo tipado da captura para a futura interface.

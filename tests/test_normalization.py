@@ -17,6 +17,7 @@ from sped_mensal.services.normalization import (
     normalize_ipi_cst,
     normalize_product_mapping,
     format_sped_money,
+    format_sped_decimal,
 )
 
 
@@ -95,6 +96,7 @@ def test_parses_decimal_values_shared_by_legacy_adjustments():
     assert str(parse_sped_decimal("1.234,56")) == "1234.56"
     assert str(parse_sped_decimal("18.50")) == "18.50"
     assert str(parse_sped_decimal("inválido")) == "0"
+    assert format_sped_decimal("1.234,5") == "1234,50"
 
 
 def test_normalizes_product_mapping_without_mutating_the_source():
