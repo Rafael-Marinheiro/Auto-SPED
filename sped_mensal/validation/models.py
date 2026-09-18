@@ -3,7 +3,14 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import StrEnum
+
+try:
+    from enum import StrEnum
+except ImportError:  # pragma: no cover - compatibilidade com Python 3.10
+    from enum import Enum
+
+    class StrEnum(str, Enum):
+        """Compatibilidade mínima com enum.StrEnum do Python 3.11+."""
 
 
 class ValidationSeverity(StrEnum):
