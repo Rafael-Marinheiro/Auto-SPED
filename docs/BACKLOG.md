@@ -102,4 +102,8 @@
   - [x] Resolver COD_VER pela competência e bloquear versões incompatíveis.
   - [x] Integrar seleção automática/explícita à API, CLI e interface desktop.
   - [x] Documentar atualização anual e cobrir fronteiras com testes.
-- [ ] Publicar documentação de implantação, segurança e solução de problemas.
+- [x] Publicar documentação de implantação, segurança e solução de problemas.
+  - [x] Documentar instalação por código-fonte, pacote Windows, atualização e rollback.
+  - [x] Documentar privilégio mínimo, dados sensíveis, auditoria e cadeia de suprimentos.
+  - [x] Publicar matriz de diagnóstico Firebird, geração, validação e PVA.
+  - [x] Adicionar política de relato privado de vulnerabilidades.
