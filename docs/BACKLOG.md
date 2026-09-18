@@ -14,10 +14,11 @@
 - [x] Manter o fluxo legado homologado sem alteração.
 - [x] Ignorar dados fiscais e bancos locais no Git.
 - [x] Registrar o contrato inicial de capturadores.
-- [ ] Remover do histórico remoto arquivos fiscais eventualmente já publicados.
+- [x] Auditar o histórico remoto e confirmar que bancos, SPEDs, XMLs, PDFs,
+  logs e credenciais reais não foram publicados.
 - [x] Criar repositório limpo `Auto-SPED` e migrar somente código, testes e
   exemplos anonimizados.
-- [ ] Definir licença, política de suporte e versão mínima do Python.
+- [x] Definir licença MIT, política de suporte e Python 3.10 como versão mínima.
 
 ## Fase 1 — Núcleo reutilizável (segunda)
 
@@ -110,3 +111,12 @@
   - [x] Documentar privilégio mínimo, dados sensíveis, auditoria e cadeia de suprimentos.
   - [x] Publicar matriz de diagnóstico Firebird, geração, validação e PVA.
   - [x] Adicionar política de relato privado de vulnerabilidades.
+
+## Fase 6 — Portfólio e comunidade
+
+- [x] Publicar a licença MIT no repositório e nos metadados do pacote.
+- [x] Preparar texto, descrição curta e checklist de publicação no LinkedIn.
+- [x] Criar carrossel em PDF explicando problema, arquitetura, fluxo, segurança
+  e colaboração.
+- [x] Revisar o material público para não expor dados fiscais reais.
+- [ ] Publicar a primeira release versionada com notas de versão.

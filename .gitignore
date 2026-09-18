@@ -12,4 +12,5 @@ saida_sped_out_*.txt
 SPED *.txt
 execucao*.log
 *.pdf
+!output/pdf/Auto-SPED_LinkedIn_Carrossel.pdf
 firebird-clients/

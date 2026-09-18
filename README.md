@@ -1,8 +1,16 @@
 # Auto-SPED
 
+[![Testes](https://github.com/Rafael-Marinheiro/Auto-SPED/actions/workflows/tests.yml/badge.svg)](https://github.com/Rafael-Marinheiro/Auto-SPED/actions/workflows/tests.yml)
+[![Build Windows](https://github.com/Rafael-Marinheiro/Auto-SPED/actions/workflows/windows-build.yml/badge.svg)](https://github.com/Rafael-Marinheiro/Auto-SPED/actions/workflows/windows-build.yml)
+[![Licença MIT](https://img.shields.io/badge/licen%C3%A7a-MIT-19d3a2.svg)](LICENSE)
+
 Gerador de **EFD ICMS/IPI** com arquitetura de capturadores reutilizáveis. O
 projeto transforma dados de um ERP, banco, API ou arquivo em registros fiscais
 padronizados, valida a consistência e gera o TXT para importação no PVA.
+
+> Projeto de portfólio e colaboração técnica. O Auto-SPED não é um produto
+> oficial da Receita Federal e não substitui a validação no PVA nem a revisão
+> de um profissional fiscal responsável.
 
 ## Status
 
@@ -76,6 +84,8 @@ a captura das tabelas do ERP atual.
 - [Versionamento de leiautes e regras fiscais](docs/FISCAL_VERSIONING.md)
 - [Backlog priorizado](docs/BACKLOG.md)
 - [Cliente Firebird e downloads oficiais](docs/FIREBIRD_SETUP.md)
+- [Texto e checklist para publicação no LinkedIn](docs/LINKEDIN_POST.md)
+- [Carrossel do projeto em PDF](output/pdf/Auto-SPED_LinkedIn_Carrossel.pdf)
 
 ## Desenvolvimento
 
@@ -135,3 +145,8 @@ sped-summary --database DADOS.FDB --start-date 2026-08-01 --end-date 2026-08-31 
 Nunca versione bancos `.FDB`, arquivos SPED emitidos, XMLs, credenciais, logs
 ou relatórios de clientes. Use apenas bancos e exemplos anonimizados em testes
 e documentação.
+
+## Licença
+
+Distribuído sob a [licença MIT](LICENSE). Você pode estudar, adaptar e criar
+seus próprios conectores, preservando o aviso de copyright e a licença.
