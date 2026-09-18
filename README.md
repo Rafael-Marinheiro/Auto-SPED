@@ -76,7 +76,14 @@ python -m venv .venv
 .venv\\Scripts\\activate
 pip install -e .
 python -m pytest -q
+python -m ruff check .
+python -m mypy
 ```
+
+O CI executa testes em Python 3.10, 3.11 e 3.12 e torna lint e tipos
+obrigatórios no núcleo reutilizável e nos conectores. Os módulos do fluxo
+legado ainda estão excluídos da checagem estrita para preservar sua paridade
+enquanto a migração ocorre por etapas.
 
 ### Pré-validação
 

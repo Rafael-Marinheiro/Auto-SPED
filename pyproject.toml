@@ -12,7 +12,7 @@ requires-python = ">=3.10"
 dependencies = ["fdb>=2.0.2"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "ruff>=0.8", "mypy>=1.13"]
 desktop = ["PySide6>=6.6"]
 postgres = ["psycopg[binary]>=3.1"]
 
@@ -28,3 +28,32 @@ include = ["sped_mensal*"]
 
 [tool.setuptools]
 py-modules = ["main_fast"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+extend-exclude = [
+    "main_fast.py",
+    "sped_mensal/database.py",
+    "sped_mensal/writer.py",
+    "sped_mensal/desktop.py",
+    "tests/test_c170_mapping.py",
+    "tests/test_writer.py",
+]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F"]
+
+[tool.mypy]
+python_version = "3.10"
+follow_imports = "skip"
+ignore_missing_imports = true
+disable_error_code = ["import-untyped"]
+files = [
+    "sped_mensal/domain/models.py",
+    "sped_mensal/providers/base.py",
+    "sped_mensal/providers/reference.py",
+    "sped_mensal/services/normalization.py",
+    "sped_mensal/services/declarative_mapping.py",
+    "sped_mensal/services/provider_certification.py",
+]

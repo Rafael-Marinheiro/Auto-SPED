@@ -89,7 +89,10 @@
 
 ## Fase 5 — Distribuição e qualidade (sexta)
 
-- [ ] Automatizar testes, lint e verificação de tipos no GitHub Actions.
+- [x] Automatizar testes, lint e verificação de tipos no GitHub Actions.
+  - [x] Tornar lint e tipos obrigatórios no núcleo reutilizável e conectores.
+  - [ ] Incluir gradualmente `main_fast.py`, `database.py`, `writer.py` e desktop
+    nas checagens estritas, mantendo os testes de paridade.
 - [x] Automatizar a suíte de testes no GitHub Actions.
 - [ ] Empacotar aplicativo Windows e instalador.
 - [ ] Versionar alterações de layout e regras fiscais.
