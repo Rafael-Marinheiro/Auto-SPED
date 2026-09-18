@@ -55,6 +55,7 @@ files = [
     "sped_mensal/providers/base.py",
     "sped_mensal/providers/reference.py",
     "sped_mensal/services/normalization.py",
+    "sped_mensal/services/fiscal_versioning.py",
     "sped_mensal/services/declarative_mapping.py",
     "sped_mensal/services/provider_certification.py",
 ]

@@ -249,7 +249,7 @@ class SpedWriter:
         lines = [line for line in lines if line.strip()]
         return "\n".join(lines)
 
-    def generate_sped_from_db(self, company_info, accountant_info, participants, products, units, invoices, extractor, start_date, end_date, log_fn: Callable[[str], None] | None = None, revenue_code: str | None = None):
+    def generate_sped_from_db(self, company_info, accountant_info, participants, products, units, invoices, extractor, start_date, end_date, log_fn: Callable[[str], None] | None = None, revenue_code: str | None = None, layout_version: str | None = None):
         """Gera o SPED a partir dos dados extraídos do banco de dados."""
         from .services.normalization import (
             digits_only,
@@ -261,8 +261,10 @@ class SpedWriter:
             normalize_sped_date,
             format_sped_money,
         )
+        from .services.fiscal_versioning import resolve_layout_version
         from .services.revenue_code import resolve_e116_revenue_code
 
+        selected_layout_version = resolve_layout_version(start_date, end_date, layout_version)
         selected_revenue_code = resolve_e116_revenue_code(company_info, revenue_code)
 
         logger = log_fn or (lambda msg: None)
@@ -276,7 +278,7 @@ class SpedWriter:
 
         # Registro 0000 - Abertura do arquivo
         self.add_register("0000", {
-            "COD_VER": "020",  # Versão do layout
+            "COD_VER": selected_layout_version,  # Versão válida para a competência
             "COD_FIN": "0",    # Remessa original
             "DT_INI": fmt_date(start_date),
             "DT_FIN": fmt_date(end_date),

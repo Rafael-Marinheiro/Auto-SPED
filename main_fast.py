@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 """Gera o SPED de 10/2025 com consultas otimizadas (sem itens para NFC-e).
 
 Uso: python main_fast.py
@@ -16,6 +16,7 @@ from sped_mensal.services.normalization import (
     parse_fiscal_date,
     parse_sped_decimal,
 )
+from sped_mensal.services.fiscal_versioning import SUPPORTED_LAYOUT_VERSIONS
 from sped_mensal.services.revenue_code import resolve_e116_revenue_code
 from sped_mensal.writer import SpedWriter
 
@@ -38,6 +39,7 @@ def main(
     client_library: str | None = None,
     output_encoding: str = "utf-8",
     revenue_code: str | None = None,
+    layout_version: str | None = None,
 ) -> Path:
     """Emite o SPED pelo fluxo homologado do ERP São Pedro.
 
@@ -329,6 +331,7 @@ def main(
         end_date=end_date,
         log_fn=_log,
         revenue_code=selected_revenue_code,
+        layout_version=layout_version,
     )
     _log("[FAST] Montagem concluida")
 
@@ -969,6 +972,11 @@ if __name__ == "__main__":
         "--revenue-code",
         help="Código de receita do E116; se omitido, usa a empresa/UF quando configurada.",
     )
+    parser.add_argument(
+        "--layout-version",
+        choices=SUPPORTED_LAYOUT_VERSIONS,
+        help="Versão do leiaute; se omitida, é resolvida com segurança pela competência.",
+    )
     args = parser.parse_args()
     main(
         args.database,
@@ -978,6 +986,7 @@ if __name__ == "__main__":
         args.fbclient,
         args.encoding,
         args.revenue_code,
+        args.layout_version,
     )
 
 

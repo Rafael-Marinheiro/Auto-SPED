@@ -97,5 +97,9 @@
 - [x] Empacotar aplicativo Windows e instalador.
   - [x] Automatizar pasta portátil e instalador por usuário no GitHub Actions.
   - [ ] Assinar executável e instalador com certificado de assinatura de código.
-- [ ] Versionar alterações de layout e regras fiscais.
+- [x] Versionar alterações de layout e regras fiscais.
+  - [x] Criar catálogo de vigência para os leiautes 018, 019 e 020.
+  - [x] Resolver COD_VER pela competência e bloquear versões incompatíveis.
+  - [x] Integrar seleção automática/explícita à API, CLI e interface desktop.
+  - [x] Documentar atualização anual e cobrir fronteiras com testes.
 - [ ] Publicar documentação de implantação, segurança e solução de problemas.

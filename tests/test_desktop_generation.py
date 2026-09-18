@@ -67,3 +67,19 @@ def test_generation_request_rejects_invalid_revenue_code(tmp_path):
 
     with pytest.raises(ValueError, match="Código de receita"):
         request.validate()
+
+
+def test_generation_request_rejects_layout_incompatible_with_period(tmp_path):
+    database = tmp_path / "DADOS.FDB"
+    database.write_bytes(b"placeholder")
+    request = GenerationRequest(
+        "firebird-sao-pedro",
+        database,
+        date(2026, 8, 1),
+        date(2026, 8, 31),
+        tmp_path / "saida.txt",
+        layout_version="019",
+    )
+
+    with pytest.raises(ValueError, match="não é válido"):
+        request.validate()

@@ -6,7 +6,11 @@ from datetime import date
 from pathlib import Path
 
 from ..providers import FirebirdSaoPedroProvider
-from ..services import build_capture_summary
+from ..services import (
+    SUPPORTED_LAYOUT_VERSIONS,
+    build_capture_summary,
+    resolve_fiscal_rule_set,
+)
 from ..services.desktop_generation import GenerationRequest
 from ..services.history import LocalHistoryStore
 from ..validation import validate_provider
@@ -91,13 +95,16 @@ class GenerationWorker(QObject):
             from main_fast import main as generate_sped
 
             output = generate_sped(
-                str(self.request.database_path),
-                self.request.start_date_iso,
-                self.request.end_date_iso,
-                self.request.output_path,
-                str(self.request.client_library) if self.request.client_library else None,
-                self.request.output_encoding,
-                self.request.revenue_code,
+                db_path=str(self.request.database_path),
+                start_date=self.request.start_date_iso,
+                end_date=self.request.end_date_iso,
+                output_path=self.request.output_path,
+                client_library=(
+                    str(self.request.client_library) if self.request.client_library else None
+                ),
+                output_encoding=self.request.output_encoding,
+                revenue_code=self.request.revenue_code,
+                layout_version=self.request.layout_version,
             )
             self.progress.emit(100)
             self._record_history("concluída", output)
@@ -128,6 +135,10 @@ class AutoSpedMainWindow(QMainWindow):
         self.output_encoding.addItem("Windows-1252", "cp1252")
         self.revenue_code = QLineEdit()
         self.revenue_code.setPlaceholderText("Automático quando houver regra segura para a UF")
+        self.layout_version = QComboBox()
+        self.layout_version.addItem("Automático pela competência (recomendado)", None)
+        for version in SUPPORTED_LAYOUT_VERSIONS:
+            self.layout_version.addItem(f"Leiaute {version}", version)
         self.start_date = QDateEdit(QDate(today.year, today.month, 1))
         self.end_date = QDateEdit(QDate(today.year, today.month, today.day))
         for control in (self.start_date, self.end_date):
@@ -187,6 +198,7 @@ class AutoSpedMainWindow(QMainWindow):
         form.addRow("Arquivo SPED:", self._path_field(self.output, self._choose_output))
         form.addRow("Codificação do TXT:", self.output_encoding)
         form.addRow("Código de receita E116:", self.revenue_code)
+        form.addRow("Versão do leiaute:", self.layout_version)
         return group
 
     @staticmethod
@@ -227,6 +239,7 @@ class AutoSpedMainWindow(QMainWindow):
             client_library=Path(client) if client else None,
             output_encoding=str(self.output_encoding.currentData()),
             revenue_code=self.revenue_code.text().strip() or None,
+            layout_version=self.layout_version.currentData(),
         )
 
     @Slot()
@@ -248,6 +261,12 @@ class AutoSpedMainWindow(QMainWindow):
         self._append(f"Cliente Firebird: {request.client_library or 'detecção automática'}")
         self._append(f"Codificação do TXT: {request.output_encoding}")
         self._append(f"Código de receita E116: {request.revenue_code or 'automático pela empresa/UF'}")
+        rule_set = resolve_fiscal_rule_set(
+            request.start_date, request.end_date, request.layout_version
+        )
+        self._append(
+            f"Leiaute fiscal: {rule_set.layout_version} ({rule_set.rule_set_id})"
+        )
         self._thread = QThread(self)
         self._worker = GenerationWorker(request, self.history_store)
         self._worker.moveToThread(self._thread)

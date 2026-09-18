@@ -7,6 +7,7 @@ from datetime import date
 from pathlib import Path
 
 from ..output_encoding import normalize_output_encoding
+from .fiscal_versioning import resolve_fiscal_rule_set
 from .revenue_code import normalize_revenue_code
 
 
@@ -22,6 +23,7 @@ class GenerationRequest:
     client_library: Path | None = None
     output_encoding: str = "utf-8"
     revenue_code: str | None = None
+    layout_version: str | None = None
 
     def validate(self) -> None:
         if self.provider_id != "firebird-sao-pedro":
@@ -35,6 +37,7 @@ class GenerationRequest:
         normalize_output_encoding(self.output_encoding)
         if self.revenue_code is not None:
             normalize_revenue_code(self.revenue_code)
+        resolve_fiscal_rule_set(self.start_date, self.end_date, self.layout_version)
 
     @property
     def start_date_iso(self) -> str:

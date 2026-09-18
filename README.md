@@ -36,6 +36,11 @@ python main_fast.py --database DADOS.FDB --start-date 2026-08-01 --end-date 2026
 A emissão é bloqueada quando não existe configuração segura; assim, um código
 estadual não é aplicado silenciosamente a uma empresa incompatível.
 
+O COD_VER do registro 0000 também é resolvido pela competência: 018 para
+2024, 019 para 2025 e 020 para 2026. Uma seleção manual incompatível ou uma
+competência ainda não cadastrada bloqueia a emissão. Consulte o
+[versionamento fiscal](docs/FISCAL_VERSIONING.md).
+
 Quando houver mais de uma versão do Firebird instalada, passe a DLL cliente
 correta com `--fbclient`. Consulte a [configuração do Firebird](docs/FIREBIRD_SETUP.md).
 
@@ -65,6 +70,7 @@ a captura das tabelas do ERP atual.
 - [Adaptadores de referência: PostgreSQL, XML e CSV](docs/REFERENCE_CONNECTORS.md)
 - [Suíte de certificação de conectores](docs/CONNECTOR_CERTIFICATION.md)
 - [Build e instalador para Windows](docs/WINDOWS_DISTRIBUTION.md)
+- [Versionamento de leiautes e regras fiscais](docs/FISCAL_VERSIONING.md)
 - [Backlog priorizado](docs/BACKLOG.md)
 - [Cliente Firebird e downloads oficiais](docs/FIREBIRD_SETUP.md)
 

@@ -10,7 +10,7 @@ from typing import Optional, Sequence
 from .database import SpedDataExtractor
 from .output_encoding import SUPPORTED_OUTPUT_ENCODINGS
 from .providers import FirebirdSaoPedroProvider
-from .services import build_capture_summary
+from .services import SUPPORTED_LAYOUT_VERSIONS, build_capture_summary
 from .validation import validate_provider, validate_sped_file
 from .writer import SpedWriter
 
@@ -57,6 +57,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--revenue-code",
         help="Código de receita do E116; se omitido, usa a empresa/UF quando configurada.",
+    )
+    parser.add_argument(
+        "--layout-version",
+        choices=SUPPORTED_LAYOUT_VERSIONS,
+        help="Versão do leiaute; se omitida, é resolvida com segurança pela competência.",
     )
     parser.add_argument(
         "--validate-only",
@@ -114,7 +119,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     writer = SpedWriter()
     writer.generate_sped_from_db(
         company_info, accountant_info, participants, products, units, invoices, extractor,
-        args.start_date, args.end_date, revenue_code=args.revenue_code
+        args.start_date, args.end_date, revenue_code=args.revenue_code,
+        layout_version=args.layout_version,
     )
     writer.write(args.output, encoding=args.encoding)
 

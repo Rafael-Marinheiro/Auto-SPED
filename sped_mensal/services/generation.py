@@ -7,6 +7,7 @@ from pathlib import Path
 
 from ..providers.base import FiscalDataProvider
 from ..writer import SpedWriter
+from .fiscal_versioning import resolve_fiscal_rule_set
 
 
 @dataclass(frozen=True)
@@ -18,6 +19,7 @@ class GenerationResult:
     start_date: str
     end_date: str
     invoice_count: int
+    layout_version: str
 
 
 def generate_sped(
@@ -27,6 +29,7 @@ def generate_sped(
     output_path: Path,
     output_encoding: str = "utf-8",
     revenue_code: str | None = None,
+    layout_version: str | None = None,
 ) -> GenerationResult:
     """Gera o arquivo usando uma fonte que implementa o contrato fiscal.
 
@@ -35,6 +38,7 @@ def generate_sped(
     de paridade nesta camada.
     """
 
+    rule_set = resolve_fiscal_rule_set(start_date, end_date, layout_version)
     invoices = list(provider.get_invoices(start_date, end_date))
     writer = SpedWriter()
     writer.generate_sped_from_db(
@@ -48,6 +52,7 @@ def generate_sped(
         start_date=start_date,
         end_date=end_date,
         revenue_code=revenue_code,
+        layout_version=rule_set.layout_version,
     )
     writer.write(output_path, encoding=output_encoding)
     return GenerationResult(
@@ -56,4 +61,5 @@ def generate_sped(
         start_date=start_date,
         end_date=end_date,
         invoice_count=len(invoices),
+        layout_version=rule_set.layout_version,
     )
