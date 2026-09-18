@@ -34,10 +34,6 @@ py-modules = ["main_fast"]
 target-version = "py310"
 line-length = 100
 extend-exclude = [
-    "main_fast.py",
-    "sped_mensal/database.py",
-    "sped_mensal/writer.py",
-    "sped_mensal/desktop.py",
     "tests/test_c170_mapping.py",
     "tests/test_writer.py",
 ]
@@ -54,6 +50,9 @@ files = [
     "sped_mensal/domain/models.py",
     "sped_mensal/providers/base.py",
     "sped_mensal/providers/reference.py",
+    "sped_mensal/database.py",
+    "sped_mensal/writer.py",
+    "sped_mensal/desktop.py",
     "sped_mensal/services/normalization.py",
     "sped_mensal/services/fiscal_versioning.py",
     "sped_mensal/services/declarative_mapping.py",

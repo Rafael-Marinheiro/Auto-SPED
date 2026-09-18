@@ -282,8 +282,8 @@ class SpedDataExtractor:
         with self.db:
             return self.db.execute_query(query)
 
-    def get_invoices(self, start_date: str, end_date: str) -> List[Dict[str, Any]]:
-        """Obtém notas fiscais do período (NFE e NFCE)."""
+    def _get_sales_invoices_legacy(self, start_date: str, end_date: str) -> List[Dict[str, Any]]:
+        """Consulta histórica de NFE/NFCE, preservada para comparação."""
         query = """
         SELECT
             NF.NUMERO as NUM_DOC,

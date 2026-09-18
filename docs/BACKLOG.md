@@ -93,6 +93,9 @@
   - [x] Tornar lint e tipos obrigatórios no núcleo reutilizável e conectores.
   - [ ] Incluir gradualmente `main_fast.py`, `database.py`, `writer.py` e desktop
     nas checagens estritas, mantendo os testes de paridade.
+    - [x] Incluir os quatro módulos no lint obrigatório.
+    - [x] Incluir `database.py`, `writer.py` e o ponto de entrada desktop no mypy.
+    - [ ] Corrigir gradualmente as anotações de `main_fast.py` e incluí-lo no mypy.
 - [x] Automatizar a suíte de testes no GitHub Actions.
 - [x] Empacotar aplicativo Windows e instalador.
   - [x] Automatizar pasta portátil e instalador por usuário no GitHub Actions.

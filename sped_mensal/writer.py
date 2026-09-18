@@ -6,7 +6,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from inspect import signature
 from pathlib import Path
-from typing import Callable, Dict, Iterable, List, Sequence
+from typing import Callable, Dict, Iterable, List, Sequence, TypedDict
 
 from .output_encoding import normalize_output_encoding
 from .registers import RegisterDefinition, get_definition
@@ -37,11 +37,16 @@ class RegisterEntry:
         return format_line(self.code, values)
 
 
+class RegisterConfig(TypedDict):
+    code: str
+    data: Dict[str, str]
+
+
 @dataclass
 class SpedConfig:
     """Configuração do SPED, tipicamente carregada de um arquivo JSON."""
 
-    registers: Sequence[Dict[str, Dict[str, str]]]
+    registers: Sequence[RegisterConfig]
 
     @classmethod
     def from_dict(cls, payload: Dict) -> "SpedConfig":
@@ -470,7 +475,6 @@ class SpedWriter:
                 items = extractor.get_invoice_items(invoice.get("NUM_DOC", ""))
 
             # Helpers for C170 normalization
-            from decimal import Decimal, InvalidOperation
             def _dec2(x) -> Decimal:
                 s = "" if x is None else str(x).strip()
                 if s == "":
@@ -584,7 +588,6 @@ class SpedWriter:
 
             # Registros C190 - Resumo por CST/CFOP/ALIQ da nota fiscal
             # Agrega valores a partir dos itens (mesmo quando não emitimos C170, ex.: NFC-e)
-            from decimal import Decimal, InvalidOperation
 
             def _dec(x) -> Decimal:
                 s = "" if x is None else str(x).strip()
@@ -715,8 +718,6 @@ class SpedWriter:
         # -------- Bloco E (Apuração do ICMS) --------
         # E001 - indicador de movimento do bloco E
         # Considera movimento quando houver qualquer débito/crédito de ICMS no período.
-        from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
-
         def _to_decimal(x) -> Decimal:
             s = "" if x is None else str(x).strip()
             if s == "":

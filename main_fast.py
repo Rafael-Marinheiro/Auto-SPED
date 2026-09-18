@@ -379,7 +379,6 @@ def main(
             except Exception:
                 continue
     sld_ap_total = max(total_debitos - total_creditos, 0.0)
-    current_c100_ok = True  # considera C190 apenas quando C100 atual é regular
 
     new_non9: list[str] = []
     for ln in non9:
@@ -391,7 +390,6 @@ def main(
             # COD_SIT em posiÃ§Ã£o 6; CHV_NFE em 9
             try:
                 cod_sit = parts[6]
-                current_c100_ok = cod_sit in {"00", "01"}
                 if cod_sit in {"02", "03", "04"}:
                     # manter formato mínimo: IND_OPER, COD_MOD, COD_SIT e CHV_NFE
                     # para NFC-e (65), também manter IND_EMIT, SER e NUM_DOC e forçar IND_EMIT=0
@@ -754,7 +752,7 @@ def main(
 
     non9 = adjusted_non9
     # Insere E116 sempre apos E110 (10 campos no total)
-    from datetime import datetime, timedelta
+    from datetime import timedelta
     try:
         end_dt = datetime.strptime(end_date, "%Y-%m-%d")
         next_month = (end_dt.replace(day=1) + timedelta(days=32)).replace(day=1)
